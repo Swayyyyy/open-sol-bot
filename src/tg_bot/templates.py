@@ -15,6 +15,8 @@ from tg_bot.models.setting import Setting
 from tg_bot.services.holding import HoldingToken
 from tg_bot.utils.bot import get_bot_name
 
+import datetime
+
 if TYPE_CHECKING:
     from tg_bot.notify.smart_swap import SwapMessage
 
@@ -118,6 +120,7 @@ NOTIFY_SWAP_TEMPLATE = env.from_string(
 📊 持仓变化: {{ position_change_formatted }}
 💎 当前持仓: {{ "%.4f"|format(post_amount) }}
 ⏰ 时间: {{ tx_time }}
+⏰ 当前: {{ current_time }}
 🔗 交易详情: <a href="https://solscan.io/tx/{{ signature }}">Solscan</a>
 📊 K线盯盘: <a href="https://gmgn.ai/sol/token/{{ mint }}">GMGN</a> | <a href="https://dexscreener.com/solana/{{ mint }}">DexScreen</a>
 """
@@ -171,6 +174,7 @@ def render_notify_swap(
         position_change_formatted=swap_message.position_change_formatted,
         post_amount=swap_message.post_amount,
         tx_time=swap_message.tx_time,
+        current_time=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         signature=swap_message.signature,
         who=swap_message.target_wallet,
         mint=swap_message.mint,

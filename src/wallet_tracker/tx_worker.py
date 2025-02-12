@@ -51,7 +51,9 @@ class TransactionWorker:
                 tx_event = tx_parser.parse()
 
             # FIXME: 解析失败，该如何处理, 后续需要对失败队列加入监控并发出警报
-            if tx_event is None:
+            if tx_event.tx_type == 'error_order':
+                return
+            elif tx_event is None:
                 logger.error(f"Parse tx failed, details: {tx_detail_text}")
                 # 加入到失败队列
                 await self.push_parse_failed_to_redis(tx_detail_text)

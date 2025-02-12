@@ -10,6 +10,7 @@ class TxType(Enum):
     ADD_POSITION = "add_position"  # 加仓
     REDUCE_POSITION = "reduce_position"  # 减仓
     CLOSE_POSITION = "close_position"  # 清仓
+    ERROR_ORDER = 'error_order'  # 错误订单
 
 
 @dataclass

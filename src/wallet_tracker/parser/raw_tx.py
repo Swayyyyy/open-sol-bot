@@ -30,6 +30,8 @@ class RawTXParser(TransactionParserInterface):
     @cache
     def get_tx_hash(self) -> str:
         txs = self.tx_detail["transaction"]["signatures"]
+        if type(txs) is str:
+            return txs
         if len(txs) > 1:
             raise ValueError("multiple txs in one transaction")
         return txs[0]
@@ -138,6 +140,8 @@ class RawTXParser(TransactionParserInterface):
                 return TxType.REDUCE_POSITION
             else:
                 assert False, "not possible"
+        elif change_ui_amount == 0 and self.tx_detail["meta"].get('error',None):
+            return TxType.ERROR_ORDER
         else:
             logger.error(
                 f"change_ui_amount: {change_ui_amount}, pre_balance: {pre_balance}, post_balance: {post_balance}"
@@ -190,6 +194,13 @@ class RawTXParser(TransactionParserInterface):
             to_decimals = token_amount_change["decimals"]
             pre_token_balance = token_amount_change["pre_balance"]
             post_token_balance = token_amount_change["post_balance"]
+        elif tx_type == TxType.ERROR_ORDER:
+            from_amount = 0
+            from_decimals = 9
+            to_amount = 0
+            to_decimals = 6
+            pre_token_balance = 0
+            post_token_balance = 0
         else:
             from_amount = abs(token_amount_change["change_amount"])
             from_decimals = token_amount_change["decimals"]
