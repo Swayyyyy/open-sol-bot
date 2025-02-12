@@ -248,7 +248,16 @@ class TransactionDetailSubscriber:
                             ) = await self.geyser_client.subscribe_with_request(
                                 pb_request
                             )
-
+                            subscribe_request = SubscribeRequest(
+                                transactions={
+                                    "key": SubscribeRequestFilterTransactions(
+                                        account_include=list(self.subscribed_wallets),
+                                    )
+                                }
+                            )
+                            json_str = subscribe_request.model_dump_json()
+                            pb_request = Parse(json_str, geyser_pb2.SubscribeRequest())
+                            await self.request_queue.put(pb_request)
             asyncio.create_task(_f())
         except asyncio.CancelledError:
             logger.info("Monitor cancelled, shutting down...")
