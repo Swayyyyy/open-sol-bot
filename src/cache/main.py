@@ -8,8 +8,8 @@ from cache.auto.min_balance_rent import MinBalanceRentCache
 from cache.auto.raydium_pool import RaydiumPoolCache
 from common.config import settings
 from common.log import logger
+from common.prestart import pre_start
 from db.redis import RedisClient
-from db.session import init_db
 
 
 class AutoUpdateCacheService:
@@ -87,7 +87,7 @@ class AutoUpdateCacheService:
 
 async def main():
     """主函数"""
-    init_db()
+    pre_start()
 
     service = AutoUpdateCacheService()
 

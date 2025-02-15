@@ -9,8 +9,8 @@ from common.cp.swap_event import SwapEventConsumer
 from common.cp.swap_result import SwapResultProducer
 from common.log import logger
 from common.types.swap import SwapEvent, SwapResult
+from common.prestart import pre_start
 from db.redis import RedisClient
-from db.session import init_db
 from trading.copytrade import CopyTradeProcessor
 from trading.executor import TradingExecutor
 from trading.settlement import SwapSettlementProcessor
@@ -75,15 +75,8 @@ class Trading:
     )
     async def _execute_swap(self, swap_event: SwapEvent) -> Optional[str]:
         """执行交易并返回签名"""
-        start_slot = (await self.rpc_client.get_slot()).value
         sig = await self.trading_executor.exec(swap_event)
-        end_slot = (await self.rpc_client.get_slot()).value
-
-        blocks_passed = end_slot - start_slot
-        logger.info(
-            f"Transaction submitted: {sig}, Blocks passed: {blocks_passed}, "
-            f"Slot: {start_slot}-{end_slot}"
-        )
+        logger.info(f"Transaction submitted: {sig}")
         return sig
 
     @backoff.on_exception(
@@ -101,9 +94,7 @@ class Trading:
         if not sig:
             return await self._record_failed_swap(swap_event)
 
-        start_slot = (await self.rpc_client.get_slot()).value
         swap_record = await self.swap_settlement_processor.process(sig, swap_event)
-        end_slot = (await self.rpc_client.get_slot()).value
 
         swap_result = SwapResult(
             swap_event=swap_event,
@@ -111,11 +102,10 @@ class Trading:
             user_pubkey=swap_event.user_pubkey,
             transaction_hash=str(sig),
             submmit_time=int(time.time()),
-            blocks_passed=end_slot - start_slot,
         )
 
         await self.swap_result_producer.produce(swap_result)
-        logger.info(f"Recorded transaction: {sig}, Confirmed Slot: {end_slot}")
+        logger.info(f"Recorded transaction: {sig}")
         return swap_result
 
     async def _record_failed_swap(self, swap_event: SwapEvent) -> SwapResult:
@@ -157,7 +147,7 @@ class Trading:
 
 
 if __name__ == "__main__":
-    init_db()
+    pre_start()
     trading = Trading()
     try:
         asyncio.run(trading.start())

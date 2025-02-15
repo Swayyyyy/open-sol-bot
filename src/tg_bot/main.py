@@ -9,8 +9,8 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from loguru import logger
 
 from common.config import settings
+from common.prestart import pre_start
 from db.redis import RedisClient
-from db.session import init_db
 from tg_bot.conversations import (
     admin,
     asset,
@@ -98,5 +98,5 @@ async def start_bot():
 
 
 if __name__ == "__main__":
-    init_db()
+    pre_start()
     asyncio.run(start_bot())

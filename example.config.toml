@@ -42,6 +42,7 @@ mysql_url = "mysql+pymysql://root:root@mysql:3306/solana_trade_bot"
 redis_url = "redis://redis:6379/0"
 
 [sentry]
+enable = true
 dsn = ""
 traces_sample_rate = 1.0
 

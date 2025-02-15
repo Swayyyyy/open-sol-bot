@@ -5,6 +5,7 @@ from typing import AsyncGenerator, Sequence
 import base58
 from google.protobuf.json_format import _Printer  # type: ignore
 from google.protobuf.message import Message
+from grpc.aio import AioRpcError
 import orjson as json
 
 import aioredis
@@ -114,6 +115,38 @@ class TransactionDetailSubscriber:
                 )
                 await asyncio.sleep(self.retry_delay)
 
+    async def _reconnect_and_subscribe(self) -> None:
+        logger.info("Attempting to reconnect...")
+        await asyncio.sleep(self.retry_delay)
+        await self._connect()
+
+        if self.geyser_client is None:
+            raise RuntimeError("Geyser client is not connected")
+
+        # Create subscription request
+        subscribe_request = self.__build_subscribe_request()
+        json_str = subscribe_request.model_dump_json()
+        pb_request = Parse(json_str, geyser_pb2.SubscribeRequest())
+
+        # Subscribe to updates
+        logger.info("Subscribing to account updates...")
+        (
+            self.request_queue,
+            self.responses,
+        ) = await self.geyser_client.subscribe_with_request(pb_request)
+
+    def __build_subscribe_request(self) -> SubscribeRequest:
+        logger.info(f"Subscribing to accounts: {self.subscribed_wallets}")
+        subscribe_request = SubscribeRequest(
+            transactions={
+                "key": SubscribeRequestFilterTransactions(
+                    account_include=list(self.subscribed_wallets),
+                    failed=False,
+                )
+            },
+        )
+        return subscribe_request
+
     async def _process_transaction(self, transaction: dict) -> None:
         """Process and store transaction in Redis."""
         if self.redis is None:
@@ -215,49 +248,22 @@ class TransactionDetailSubscriber:
             ) = await self.geyser_client.subscribe_with_request(pb_request)
 
             async def _f():
+                """Process responses from the queue."""
+                logger.info(f"Starting response worker {id(asyncio.current_task())}")
+
                 while self.is_running:
                     try:
                         async for response in self.responses:
                             if not self.is_running:
                                 break
                             await self.response_queue.put(response)
-
+                    except AioRpcError as e:
+                        logger.error(f"Rpc Error: {e._details}")
+                        await self._reconnect_and_subscribe()
                     except Exception as e:
-                        logger.error(f"Error in subscription loop: {e}")
                         logger.exception(e)
-                        if self.is_running:
-                            logger.info("Attempting to reconnect...")
-                            await asyncio.sleep(self.retry_delay)
-                            await self._connect()
+                        await self._reconnect_and_subscribe()
 
-                            if self.geyser_client is None:
-                                raise Exception("Geyser client is not connected")
-
-                            # Create subscription request
-                            subscribe_request = SubscribeRequest(
-                                ping=SubscribeRequestPing(id=1)
-                            )
-                            json_str = subscribe_request.model_dump_json()
-                            pb_request = Parse(json_str, geyser_pb2.SubscribeRequest())
-
-                            # Subscribe to updates
-                            logger.info("Subscribing to account updates...")
-                            (
-                                self.request_queue,
-                                self.responses,
-                            ) = await self.geyser_client.subscribe_with_request(
-                                pb_request
-                            )
-                            subscribe_request = SubscribeRequest(
-                                transactions={
-                                    "key": SubscribeRequestFilterTransactions(
-                                        account_include=list(self.subscribed_wallets),
-                                    )
-                                }
-                            )
-                            json_str = subscribe_request.model_dump_json()
-                            pb_request = Parse(json_str, geyser_pb2.SubscribeRequest())
-                            await self.request_queue.put(pb_request)
             asyncio.create_task(_f())
         except asyncio.CancelledError:
             logger.info("Monitor cancelled, shutting down...")
@@ -315,13 +321,7 @@ class TransactionDetailSubscriber:
 
         # 发送订阅请求，包含所有已订阅的钱包
         # 这个请求会完全替换服务器端之前的订阅状态
-        subscribe_request = SubscribeRequest(
-            transactions={
-                "key": SubscribeRequestFilterTransactions(
-                    account_include=list(self.subscribed_wallets),
-                )
-            }
-        )
+        subscribe_request = self.__build_subscribe_request()
         json_str = subscribe_request.model_dump_json()
         pb_request = Parse(json_str, geyser_pb2.SubscribeRequest())
         await self.request_queue.put(pb_request)
@@ -347,13 +347,7 @@ class TransactionDetailSubscriber:
 
         # 发送新的订阅请求，只包含剩余的钱包
         # 这个请求会完全替换服务器端之前的订阅状态
-        subscribe_request = SubscribeRequest(
-            transactions={
-                "key": SubscribeRequestFilterTransactions(
-                    account_include=list(self.subscribed_wallets),
-                )
-            }
-        )
+        subscribe_request = self.__build_subscribe_request()
         json_str = subscribe_request.model_dump_json()
         pb_request = Parse(json_str, geyser_pb2.SubscribeRequest())
         await self.request_queue.put(pb_request)

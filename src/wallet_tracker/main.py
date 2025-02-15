@@ -1,6 +1,7 @@
 import asyncio
 from collections.abc import Sequence
 
+from common.prestart import pre_start
 from sqlalchemy.ext.asyncio import AsyncSession
 from common.utils import get_async_client
 from solders.pubkey import Pubkey  # type: ignore
@@ -71,9 +72,7 @@ class WalletTracker:
 
 
 if __name__ == "__main__":
-    from db.session import init_db
-
-    init_db()
+    pre_start()
 
     # 从配置中获取被监听钱包
     wallets = set(settings.monitor.wallets)

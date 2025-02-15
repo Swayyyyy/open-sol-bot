@@ -2,9 +2,9 @@ import asyncio
 import signal
 
 from common.log import logger
+from common.prestart import pre_start
 
 from db.redis import RedisClient
-from db.session import init_db
 from pump_monitor.new_token import NewTokenSubscriber
 from pump_monitor.store import NewTokenStore
 
@@ -81,5 +81,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    init_db()
+    pre_start()
     asyncio.run(main())

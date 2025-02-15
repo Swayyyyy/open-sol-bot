@@ -14,7 +14,7 @@ logger.remove()
 # Add console handler with custom format
 logger.add(
     sys.stderr,
-    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+    format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
     level=LOG_LEVEL,
     enqueue=True,
 )
@@ -24,7 +24,7 @@ log_path = Path(__file__).parent.parent.parent / "logs"
 log_path.mkdir(exist_ok=True)
 logger.add(
     log_path / "error.log",
-    format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}",
+    format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}",
     level="ERROR",
     rotation="1 day",
     retention="7 days",

@@ -1,0 +1,7 @@
+-- 创建用户并授予权限
+CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY 'root';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+
+-- 确保数据库存在
+CREATE DATABASE IF NOT EXISTS solana_trade_bot;

@@ -7,7 +7,14 @@ import os
 from typing import Any, Literal, cast
 
 import tomli
-from pydantic import BaseModel, ConfigDict, Field, MySQLDsn, RedisDsn, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    MySQLDsn,
+    RedisDsn,
+    field_validator,
+)
 from pydantic.fields import FieldInfo
 from pydantic_settings import (
     BaseSettings,
@@ -97,6 +104,10 @@ class WalletConfig(BaseModel):
     @property
     def keypair(self) -> Keypair:
         return Keypair.from_base58_string(self.private_key)
+
+class OKLineConfig(BaseModel):
+    channelAccessToken: str
+
 
 
 class MonitorConfig(BaseModel):
@@ -211,6 +222,12 @@ class CopyTradeConfig(BaseModel):
         return Pubkey.from_string(value)
 
 
+class SentryConfig(BaseModel):
+    enable: bool = False
+    dsn: str = ""
+    traces_sample_rate: float = 1.0
+
+
 class Settings(TomlSettings):
     model_config = SettingsConfigDict(
         env_file_encoding="utf-8",
@@ -226,7 +243,8 @@ class Settings(TomlSettings):
     db: DBConfig
     log: LogConfig
     tg_bot: TgBotConfig
-
+    sentry: SentryConfig
+    okline: OKLineConfig
 
 class LazySettings:
     _instance = None

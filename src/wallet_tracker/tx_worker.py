@@ -6,7 +6,12 @@ from wallet_tracker.constants import (
     FAILED_TX_DETAIL_CHANNEL,
     NEW_TX_DETAIL_CHANNEL,
 )
-from wallet_tracker.exceptions import NotSwapTransaction, TransactionError
+from wallet_tracker.exceptions import (
+    NotSwapTransaction,
+    TransactionError,
+    UnknownTransactionType,
+    ZeroChangeAmountError,
+)
 from wallet_tracker.parser import RawTXParser
 import aioredis
 from wallet_tracker import benchmark
@@ -64,6 +69,12 @@ class TransactionWorker:
             logger.info(f"Transaction status is not valid, status: {e}")
         except NotSwapTransaction:
             logger.info(f"Tx is not swap transaction, details: {tx_hash}")
+            return
+        except UnknownTransactionType:
+            logger.info(f"Tx type is not valid, details: {tx_hash}")
+            return
+        except ZeroChangeAmountError:
+            logger.info(f"Tx amount is zero, details: {tx_hash}")
             return
         except Exception as e:
             logger.error(

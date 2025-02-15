@@ -2,9 +2,8 @@ from functools import cache
 import orjson as json
 
 from common.constants import TOKEN_PROGRAM_ID, WSOL, SWAP_PROGRAMS
-from common.log import logger
 
-from wallet_tracker.exceptions import NotSwapTransaction
+from wallet_tracker.exceptions import NotSwapTransaction, UnknownTransactionType
 
 from .protocol import TransactionParserInterface
 from common.types import (
@@ -13,6 +12,7 @@ from common.types import (
     TxEvent,
     TxType,
 )
+from wallet_tracker.exceptions import ZeroChangeAmountError
 
 
 class RawTXParser(TransactionParserInterface):
@@ -132,21 +132,18 @@ class RawTXParser(TransactionParserInterface):
             elif post_balance > pre_balance:
                 return TxType.ADD_POSITION
             else:
-                assert False, "not possible"
+                raise UnknownTransactionType()
         elif change_ui_amount < 0:
             if pre_balance > 0 and post_balance < 0.001:
                 return TxType.CLOSE_POSITION
             elif post_balance < pre_balance:
                 return TxType.REDUCE_POSITION
             else:
-                assert False, "not possible"
+                raise UnknownTransactionType()
         elif change_ui_amount == 0 and self.tx_detail["meta"].get('error',None):
             return TxType.ERROR_ORDER
         else:
-            logger.error(
-                f"change_ui_amount: {change_ui_amount}, pre_balance: {pre_balance}, post_balance: {post_balance}"
-            )
-            assert False, "not possible"
+            raise ZeroChangeAmountError(pre_balance, post_balance)
 
     @cache
     def get_swap_program_id(self) -> str | None:

@@ -28,6 +28,9 @@ trading:
 wallet-tracker:
 	pdm run python src/wallet_tracker/main.py
 
+gmgn-tracker:
+	pdm run python scr/gmgnbot/main.py
+	
 pump-monitor:
 	PYTHONPATH=$(PWD)/src $(PYTHON) src/pump_monitor/main.py
 

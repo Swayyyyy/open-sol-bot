@@ -1,0 +1,83 @@
+# Use the official Ubuntu image as the base image
+FROM --platform=linux/amd64 ubuntu:22.04
+
+# Set environment variables to avoid interactive prompts during build
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DOCKERMODE=true
+
+# Install necessary packages for Xvfb and pyvirtualdisplay
+RUN apt-get update && \
+    apt-get install -y \
+        python3 \
+        python3-pip \
+        wget \
+        gnupg \
+        ca-certificates \
+        libx11-xcb1 \
+        libxcomposite1 \
+        libxdamage1 \
+        libxrandr2 \
+        libxss1 \
+        libxtst6 \
+        libnss3 \
+        libatk-bridge2.0-0 \
+        libgtk-3-0 \
+        x11-apps \
+        fonts-liberation \
+        libappindicator3-1 \
+        libu2f-udev \
+        libvulkan1 \
+        libdrm2 \
+        xdg-utils \
+        xvfb \
+        && rm -rf /var/lib/apt/lists/*
+
+# Add Google Chrome repository and install Google Chrome
+RUN wget -q -O /usr/share/keyrings/google-chrome.gpg https://dl.google.com/linux/linux_signing_key.pub && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get update --allow-insecure-repositories && \
+    apt-get install -y --allow-unauthenticated google-chrome-stable
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+  PYTHONPATH=/app/src \
+  PDM_USE_VENV=false \
+  PDM_INSTALL_PATH=/app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+  build-essential \
+  curl \
+  git \
+  libssl-dev \
+  pkg-config \
+  && rm -rf /var/lib/apt/lists/*
+
+# Install PDM
+RUN curl -sSL https://pdm.fming.dev/install-pdm.py | python3 - && \
+  ln -s /root/.local/bin/pdm /usr/bin/pdm
+
+# Copy project files first to optimize caching
+COPY Makefile pyproject.toml pdm.lock ./
+
+# Install dependencies
+RUN pdm config python.use_venv false && \
+  pdm install --no-self --no-lock --prod
+
+# Copy source code (this will be used in production mode)
+# In development mode, the source code will be mounted via volume
+COPY src/ ./src/
+
+# Install Python dependencies including pyvirtualdisplay
+RUN pip3 install --upgrade pip
+RUN pip3 install pyvirtualdisplay
+
+# Set up a working directory
+WORKDIR /app
+
+# Copy application files
+COPY src/ ./src/
+
+# Install Python dependencies
+RUN pip3 install DrissionPage==4.0.5.6
+RUN pip3 install fastapi pydantic uvicorn PyVirtualDisplay DrissionPage==4.0.5.6
