@@ -1,9 +1,12 @@
-# Use the official Ubuntu image as the base image
 FROM --platform=linux/amd64 ubuntu:22.04
 
 # Set environment variables to avoid interactive prompts during build
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DOCKERMODE=true
+ENV PYTHONUNBUFFERED=1 \
+  PYTHONPATH=/app/src \
+  PDM_USE_VENV=false \
+  PDM_INSTALL_PATH=/app
 
 # Install necessary packages for Xvfb and pyvirtualdisplay
 RUN apt-get update && \
@@ -30,6 +33,11 @@ RUN apt-get update && \
         libdrm2 \
         xdg-utils \
         xvfb \
+        build-essential \
+        curl \
+        git \
+        libssl-dev \
+        pkg-config \
         && rm -rf /var/lib/apt/lists/*
 
 # Add Google Chrome repository and install Google Chrome
@@ -38,46 +46,36 @@ RUN wget -q -O /usr/share/keyrings/google-chrome.gpg https://dl.google.com/linux
     apt-get update --allow-insecure-repositories && \
     apt-get install -y --allow-unauthenticated google-chrome-stable
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-  PYTHONPATH=/app/src \
-  PDM_USE_VENV=false \
-  PDM_INSTALL_PATH=/app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-  build-essential \
-  curl \
-  git \
-  libssl-dev \
-  pkg-config \
-  && rm -rf /var/lib/apt/lists/*
+RUN apt install python3.10-venv -y
 
 # Install PDM
 RUN curl -sSL https://pdm.fming.dev/install-pdm.py | python3 - && \
   ln -s /root/.local/bin/pdm /usr/bin/pdm
 
+WORKDIR /app
+
 # Copy project files first to optimize caching
-COPY Makefile pyproject.toml pdm.lock ./
+COPY README.md Makefile pyproject.toml pdm.lock ./
 
 # Install dependencies
 RUN pdm config python.use_venv false && \
   pdm install --no-self --no-lock --prod
-
+# RUN pip3 install DrissionPage
+# RUN pdm add DrissionPage
 # Copy source code (this will be used in production mode)
 # In development mode, the source code will be mounted via volume
 COPY src/ ./src/
 
-# Install Python dependencies including pyvirtualdisplay
-RUN pip3 install --upgrade pip
-RUN pip3 install pyvirtualdisplay
-
 # Set up a working directory
-WORKDIR /app
+
 
 # Copy application files
-COPY src/ ./src/
+COPY . .
 
-# Install Python dependencies
-RUN pip3 install DrissionPage==4.0.5.6
-RUN pip3 install fastapi pydantic uvicorn PyVirtualDisplay DrissionPage==4.0.5.6
+
+# Expose the port for remote debugging
+EXPOSE 9222
+
+# Expose the port for the FastAPI server
+EXPOSE 8000

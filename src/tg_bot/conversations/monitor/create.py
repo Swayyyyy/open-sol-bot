@@ -14,6 +14,7 @@ from tg_bot.utils import delete_later, validate_solana_address
 
 from .render import render
 
+
 router = Router()
 monitor_service = MonitorService()
 

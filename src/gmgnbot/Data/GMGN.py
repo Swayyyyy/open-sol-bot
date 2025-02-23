@@ -1,7 +1,7 @@
 from Data.CloudflareBypasser import CloudflareBypasser
 from DrissionPage import ChromiumPage, ChromiumOptions
 from urllib.parse import urlencode
-
+from common.log import logger
 import pandas as pd
 import json
 from datetime import datetime, timedelta
@@ -32,20 +32,22 @@ arguments = [
 class GMGN():
     def __init__(self, chrome_path="/usr/bin/google-chrome-stable"):
         print('Starting display')
-        # display = Display(visible=0, size=(1920, 1080))
-        # display.start()
-        # print('Display started')
+        display = Display(visible=0, size=(1920, 1080))
+        display.start()
+        print('Display started')
         
-        # def cleanup_display():
-        #     if display:
-        #         display.stop()
+        def cleanup_display():
+            if display:
+                display.stop()
                 
-        # atexit.register(cleanup_display)
+        atexit.register(cleanup_display)
         browser_path = chrome_path
         options = ChromiumOptions().auto_port()
         options.set_argument("--remote-debugging-port=15185")
-        options.set_argument("--headless") 
+        options.set_argument("--headless=new") 
         options.set_argument("--disable-gpu")  # Optional, helps in some cases
+        options.set_argument("--no-sandbox")  # Optional, helps in some cases
+        options.set_argument("--disable-dev-shm-usage") 
         
         options.set_paths(browser_path=browser_path).headless(False)
         
@@ -73,6 +75,7 @@ class GMGN():
         base_url = base_url.format(token_id)
         trading_info = []
         for i in range(nums//100):
+            logger.info(f"Fetching {i}th page of trading data for token {token_id}")
             # 构造请求参数
             params = {
                 "tz_name": "Asia/Hong_Kong",
@@ -114,6 +117,7 @@ class GMGN():
         - 一个 pandas.DataFrame，包含 K 线数据（字段 open、close、high、low、time、volume）
         """
         # 将 datetime 对象转换为 Unix 时间戳（单位：秒）
+        logger.info(f"Fetching Kline data for token {token_id}")
         start_ts = int(start_datetime.timestamp())
         end_ts = int(end_datetime.timestamp())
         
@@ -176,6 +180,7 @@ class GMGN():
         - 一个 pandas.DataFrame，包含代币的信息（字段 id、name、symbol、price、change、volume）
         """
         # 构造 URL
+        logger.info(f"Fetching hot token list")
         base_url = f"https://gmgn.ai/defi/quotation/v1/rank/sol/swaps/{interval}"
         data = {
             "device_id": "a3970227-1163-426a-b60b-3cc34832cf47",
@@ -202,10 +207,9 @@ class GMGN():
         return df
     
     def fetch_hoding(self, address):
-        
+        logger.info(f"Fetching hoding data for address {address}")
         base_url = f'https://gmgn.ai/api/v1/wallet_holdings/sol/{address}'
         data = {
-            
             "tz_name": "Asia/Shanghai",
             "tz_offset": "28800",
             "app_lang": "en",

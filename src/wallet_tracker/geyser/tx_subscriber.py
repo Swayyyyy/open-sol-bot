@@ -7,7 +7,7 @@ from google.protobuf.json_format import _Printer  # type: ignore
 from google.protobuf.message import Message
 from grpc.aio import AioRpcError
 import orjson as json
-
+from typing import List
 import aioredis
 from solders.pubkey import Pubkey  # type: ignore
 from common.config import settings
@@ -299,7 +299,29 @@ class TransactionDetailSubscriber:
                 logger.error(f"Error closing Redis connection: {e}")
 
         logger.info("Wallet monitor stopped")
+        
+    async def subscribe_manywallet_transactions(self, wallets: List[Pubkey]):
+        """订阅多个钱包的交易信息。
 
+        每次发送新的订阅请求都会完全替换之前的订阅状态。
+        这是 Geyser API 的设计：它使用 gRPC 的双向流，每个新请求都会更新整个订阅列表。
+
+        Args:
+            wallets (List[Pubkey]): 要订阅的钱包地址列表
+        """
+        if self.request_queue is None:
+            raise Exception("Request queue is not initialized")
+
+        # 添加到订阅集合
+        self.subscribed_wallets.update(str(wallet) for wallet in wallets)
+
+        # 发送订阅请求，包含所有已订阅的钱包
+        # 这个请求会完全替换服务器端之前的订阅状态
+        subscribe_request = self.__build_subscribe_request()
+        json_str = subscribe_request.model_dump_json()
+        pb_request = Parse(json_str, geyser_pb2.SubscribeRequest())
+        await self.request_queue.put(pb_request)
+        
     async def subscribe_wallet_transactions(self, wallet: Pubkey) -> None:
         """订阅钱包的交易信息。
 

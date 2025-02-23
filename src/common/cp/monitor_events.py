@@ -18,6 +18,7 @@ class MonitorEventType(str, Enum):
 
     PAUSE = "pause"  # 暂停监听器
     RESUME = "resume"  # 恢复监听器
+    RESUME_MANY = 'resume_many'  # 恢复多个监听器
 
 
 class MonitorEvent(BaseModel):
@@ -75,6 +76,22 @@ class MonitorEventProducer:
         await self.publish_event(event)
         logger.info(f"Resumed monitor {monitor_id} for wallet {target_wallet}")
 
+    async def resume_many_monitor(self, monitor_id: int, target_wallets: str, owner_id: int):
+        """恢复监听器
+
+        Args:
+            monitor_id: 监听器 id
+            target_wallet: 目标钱包
+            owner_id: 用户 id
+        """
+        event = MonitorEvent(
+            event_type=MonitorEventType.RESUME_MANY,
+            monitor_id=monitor_id,
+            target_wallet=target_wallets,
+            owner_id=owner_id,
+        )
+        await self.publish_event(event)
+        logger.info(f"Resumed monitor {monitor_id} for wallet {target_wallets}")
 
 class MonitorEventConsumer:
     """监听器事件消费者

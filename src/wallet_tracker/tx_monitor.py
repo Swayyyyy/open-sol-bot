@@ -48,7 +48,7 @@ class TxMonitor:
         # 注册事件处理器
         self.events.register_handler(MonitorEventType.RESUME, self._handle_resume_event)
         self.events.register_handler(MonitorEventType.PAUSE, self._handle_pause_event)
-
+        self.events.register_handler(MonitorEventType.RESUME_MANY, self._handle_resume_many_event)
         # 订阅事件
         pubsub = await self.events.subscribe()
         logger.info("Transaction monitor started")
@@ -99,7 +99,19 @@ class TxMonitor:
                 f"Failed to resume monitoring wallet {event.target_wallet}: {e}"
             )
             raise
-
+    
+    async def _handle_resume_many_event(self, event: MonitorEvent):
+        """处理恢复多个监听事件"""
+        try:
+            wallets = [Pubkey.from_string(wallet) for wallet in event.target_wallet.split(",")]
+            await self.monitor.subscribe_manywallet_transactions(wallets)
+            logger.info(f"Resumed monitoring wallet: {wallets}")
+        except Exception as e:
+            logger.error(
+                f"Failed to resume monitoring wallet {event.target_wallet}: {e}"
+            )
+            raise
+        
     async def _handle_pause_event(self, event: MonitorEvent):
         """处理暂停监听事件"""
         try:

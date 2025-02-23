@@ -12,13 +12,15 @@ from pump_monitor.store import NewTokenStore
 import time
 import datetime
 
+from AddressMonitor import AddressMonitor
+from TokenMontior import GmgnMontior
 
-        
-        
-def main():
-    monitor = GmgnMontior()
-    return monitor.start()
 
+async def main():
+    gmgnMonitor = GmgnMontior()
+    addMonitor = AddressMonitor()
+    await asyncio.gather(gmgnMonitor.start(), addMonitor.start())
+    
 if __name__ == "__main__":
-    # pre_start()
+    pre_start()
     asyncio.run(main())

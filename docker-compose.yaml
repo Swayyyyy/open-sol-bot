@@ -2,7 +2,9 @@ version: "3.8"
 
 services:
   gmgn-tracker:
-      image:ghcr.io/sarperavci/cloudflarebypassforscraping:latest
+      build:
+        context: .
+        dockerfile: gmgnDckerfile
       restart: unless-stopped
       volumes:
         - ./config.toml:/app/config.toml:ro

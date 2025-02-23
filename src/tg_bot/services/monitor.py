@@ -77,6 +77,41 @@ class MonitorService:
             raise ValueError(f"Failed to create monitor: {e}")
 
     @provide_session
+    async def addall(
+        self, monitors: List[Monitor], *, session: AsyncSession = NEW_ASYNC_SESSION
+    ) -> None:
+        """Add a new monitor to the database"""
+        try:
+            # 第一步：创建数据库记录
+            db_monitors = [MonitorModel(
+                chat_id=monitor.chat_id,
+                target_wallet=monitor.target_wallet,
+                wallet_alias=monitor.wallet_alias,
+                active=monitor.active,
+            ) for monitor in monitors]
+            session.add_all(db_monitors)
+            await session.flush()  # 获取自动生成的 ID
+
+            # 第二步：发送事件
+            try:
+                assert db_monitors[1].id, "ID should not be None"
+                await self.producer.resume_many_monitor(
+                    db_monitors[1].id,  # 使用数据库生成的 ID
+                    ','.join([db_monitor.target_wallet for db_monitor in db_monitors]),
+                    db_monitors[1].chat_id,
+                )
+            except Exception as e:
+                await session.rollback()  # 如果发送事件失败，回滚数据库操作
+                raise ValueError(f"Failed to send monitor event: {e}")
+
+            # 所有操作都成功，提交事务
+            await session.commit()
+
+        except Exception as e:
+            await session.rollback()
+            raise ValueError(f"Failed to create monitor: {e}")
+
+    @provide_session
     async def update(
         self, monitor: Monitor, *, session: AsyncSession = NEW_ASYNC_SESSION
     ) -> None:
