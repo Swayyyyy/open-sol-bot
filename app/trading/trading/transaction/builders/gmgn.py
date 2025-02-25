@@ -1,12 +1,11 @@
-import httpx
+from cache.token_info import TokenInfoCache
+from common.config import settings
+from common.constants import SOL_DECIMAL, WSOL
+from common.utils.gmgn import GmgnAPI
 from solana.rpc.async_api import AsyncClient
 from solders.keypair import Keypair  # type: ignore
 from solders.transaction import VersionedTransaction  # type: ignore
 
-from cache.token_info import TokenInfoCache
-from common.config import settings
-from common.constants import SOL_DECIMAL, WSOL
-from trading.exceptions import NoRouteFound
 from trading.swap import SwapDirection, SwapInType
 from trading.tx import sign_transaction_from_raw
 
@@ -17,10 +16,9 @@ class GMGNTransactionBuilder(TransactionBuilder):
     """GMGN 交易构建器"""
 
     def __init__(self, rpc_client: AsyncClient) -> None:
-        self.client = httpx.AsyncClient(base_url="https://gmgn.ai")
-        self.api_path = "/defi/router/v1/sol/tx/get_swap_route"
-        self.rpc_client = rpc_client
+        super().__init__(rpc_client=rpc_client)
         self.token_info_cache = TokenInfoCache()
+        self.gmgn_client = GmgnAPI()
 
     async def build_swap_transaction(
         self,
@@ -73,30 +71,14 @@ class GMGNTransactionBuilder(TransactionBuilder):
             fee = priority_fee
 
         slippage = slippage_bps / 100
-        params = {
-            "token_in_address": token_in,
-            "token_out_address": token_out,
-            "in_amount": amount,
-            "from_address": keypair.pubkey().__str__(),
-            "slippage": slippage,
-            "swap_mode": swap_mode,
-            "fee": fee,
-        }
-
-        # TODO: 获取报价解耦
-        resp = await self.client.get(self.api_path, params=params)
-        resp.raise_for_status()
-
-        js = resp.json()
-        if js["code"] != 0:
-            msg = js["msg"]
-            if "no route" in msg:
-                raise NoRouteFound(msg)
-            raise Exception("Error: {}, Argument: {}".format(js["msg"], params))
-
-        data = js["data"]
-        raw_tx = data["raw_tx"]
-        swap_tx = raw_tx["swapTransaction"]
-
+        swap_tx = await self.gmgn_client.get_swap_transaction(
+            token_in_address=token_in,
+            token_out_address=token_out,
+            in_amount=amount,
+            from_address=keypair.pubkey().__str__(),
+            slippage=slippage,
+            swap_mode=swap_mode,
+            fee=fee,
+        )
         signed_tx = await sign_transaction_from_raw(swap_tx, keypair)
         return signed_tx

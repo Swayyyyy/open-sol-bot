@@ -6,8 +6,7 @@ class TradingRoute(Enum):
 
     PUMP = "pump"  # PUMP 协议交易
     RAYDIUM_V4 = "raydium_v4"  # Raydium V4 协议交易
-    GMGN = "gmgn"  # GMGN 聚合器交易
-    JUPITER = "jupiter"  # Jupiter 聚合器交易
+    DEX = "dex"  # DEX 交易
 
     @classmethod
     def from_str(cls, value: str) -> "TradingRoute":

@@ -21,9 +21,8 @@ RAY_V4_PROGRAM_ID = str(RAY_V4)
 class TradingExecutor:
     def __init__(self, client: AsyncClient):
         self._rpc_client = client
-        self._jito_client = JitoClient()
-        self._raydium_api = RaydiumAPI()
         self._launch_cache = LaunchCache()
+        self._trading_service = TradingService(self._rpc_client)
 
     @provide_session
     async def __get_keypair(self, pubkey: str, *, session=NEW_ASYNC_SESSION) -> Keypair:
@@ -91,19 +90,14 @@ class TradingExecutor:
         # NOTE: 测试下来不是很理想，暂时使用备选方案
         elif swap_event.program_id == RAY_V4_PROGRAM_ID:
             logger.info("Program ID is RayV4")
-            trade_route = TradingRoute.GMGN
+            trade_route = TradingRoute.DEX
         elif program_id is None or program_id == RAY_V4_PROGRAM_ID:
             logger.warning("Program ID is Unknown, So We use thrid party to trade")
-            trade_route = TradingRoute.GMGN
+            trade_route = TradingRoute.DEX
         else:
             raise ValueError(f"Program ID is not supported, {swap_event.program_id}")
 
-        sig = await TradingService.create(
-            trade_route,
-            self._rpc_client,
-            use_jito=settings.trading.use_jito,
-            jito_client=self._jito_client,
-        ).swap(
+        sig = await self._trading_service.use_route(trade_route).swap(
             keypair,
             token_address,
             swap_event.ui_amount,

@@ -1,6 +1,6 @@
 [project]
 name = "solbot-services"
-version = "0.1.8"
+version = "0.1.9"
 description = "Common services for Solana Trading Bot"
 authors = [{ name = "mkdir700", email = "mkdir700@gmail.com" }]
 dependencies = [

@@ -1,31 +1,27 @@
 from abc import ABC, abstractmethod
-from typing import Optional
 
 from solana.rpc.async_api import AsyncClient
-from solana.rpc.types import TxOpts
-from solders.signature import Signature
-from solders.transaction import VersionedTransaction
-
-from common.utils.jito import JitoClient
+from solders.signature import Signature  # type: ignore
+from solders.transaction import VersionedTransaction  # type: ignore
 
 
 class TransactionSender(ABC):
     """交易发送器的抽象基类"""
 
-    def __init__(self, client: AsyncClient | JitoClient):
-        self.client = client
+    def __init__(self, rpc_client: AsyncClient):
+        self.rpc_client = rpc_client
 
     @abstractmethod
     async def send_transaction(
         self,
         transaction: VersionedTransaction,
-        opts: Optional[TxOpts] = None,
+        **kwargs,
     ) -> Signature:
         """发送交易
 
         Args:
             transaction (VersionedTransaction): 要发送的交易
-            opts (Optional[TxOpts], optional): 交易选项. Defaults to None.
+            **kwargs: 可选的关键字参数
 
         Returns:
             Signature: 交易签名

@@ -1,6 +1,6 @@
 [project]
 name = "open-sol-bot"
-version = "0.1.8"
+version = "0.1.9"
 description = "Default template for PDM package"
 authors = [{ name = "mkdir700", email = "mkdir700@gmail.com" }]
 dependencies = [
