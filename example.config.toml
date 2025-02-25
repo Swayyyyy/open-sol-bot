@@ -22,6 +22,9 @@ unit_limit = 81000
 unit_price = 3000000
 preflight_check = false
 tx_simulate = false
+use_jito = true
+# jito_api 可根据服务器地址选择，就近原则 https://docs.jito.wtf/lowlatencytxnsend/#api
+jito_api = "https://mainnet.block-engine.jito.wtf"
 
 [api]
 helius_api_base_url = "https://api.helius.xyz/v0"
@@ -42,7 +45,7 @@ mysql_url = "mysql+pymysql://root:root@mysql:3306/solana_trade_bot"
 redis_url = "redis://redis:6379/0"
 
 [sentry]
-enable = true
+enable = false
 dsn = ""
 traces_sample_rate = 1.0
 

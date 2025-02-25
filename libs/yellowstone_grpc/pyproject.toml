@@ -1,0 +1,30 @@
+[project]
+name = "solbot-yellowstone-grpc"
+version = "0.1.8"
+description = "Yellowstone gRPC client for Solana Trading Bot"
+authors = [{ name = "mkdir700", email = "mkdir700@gmail.com" }]
+dependencies = [
+    "solbot-common",
+    "grpcio>=1.68.1",
+    "grpcio-tools>=1.68.1",
+    "protobuf>=5.29.0",
+    "grpcio-health-checking>=1.68.1",
+]
+requires-python = "==3.10.*"
+license = { text = "MIT" }
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm]
+distribution = true
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+]
+
+[tool.pdm.scripts]
+generate = { shell = "cd yellowstone-grpc-proto && ./generate.sh" }

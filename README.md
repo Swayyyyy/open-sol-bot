@@ -15,7 +15,7 @@
 
 ## 🎯 演示
 
-![Trading Bot Demo](./assets/start.png)
+![Trading Bot Demo](https://github.com/user-attachments/assets/a4389538-b317-4858-a41d-b0f374d1a18f)
 
 <details><summary>SWAP</summary>
 <p>
@@ -23,7 +23,7 @@
 ![Image](https://github.com/user-attachments/assets/7005e10f-e599-414c-9520-b2e558f9e86b)
 
 </p>
-</details> 
+</details>
 
 <details><summary>跟单</summary>
 <p>
@@ -31,7 +31,7 @@
 ![Image](https://github.com/user-attachments/assets/653eb952-b8f9-4084-a0d3-42e719cc3043)
 
 </p>
-</details> 
+</details>
 
 <details><summary>监控</summary>
 <p>
@@ -39,14 +39,12 @@
 ![Image](https://github.com/user-attachments/assets/095f87f9-f95c-437a-b5ff-9a6a19e37fc6)
 
 </p>
-</details> 
+</details>
 
-
-
-> 🤖 前往体验: [https://t.me/open_sol_bot](https://t.me/open_sol_bot)  
-> 💬 交流群组: [https://t.me/opensolbot](https://t.me/opensolbot)
-> 
+> 💬 交流群组: [https://t.me/chainbuff](https://t.me/chainbuff)
+>
 > ⚠️ **警告**：此机器人仅供测试体验使用
+>
 > - ❌ 请勿导入个人钱包
 > - ❌ 请勿向钱包充值
 > - 📢 测试数据可能随时被清除
@@ -99,17 +97,45 @@ cp example.config.toml config.toml
 
 ## 🚀 使用说明
 
-使用 Docker 运行：
+Podman 请使用以下命令：
+
+启动：
 
 ```
 make up
 ```
 
-停止服务:
+停止服务：
 
 ```
 make down
 ```
+
+<details><summary>Docker 请使用以下命令:</summary>
+<p>
+启动：
+
+```bash
+docker compose up -d
+```
+
+停止服务：
+
+```bash
+docker compose down
+```
+
+</p>
+</details>
+
+更新：
+
+```
+git pull
+podman/docker compose up -d --build
+```
+
+> 升级版本建议带上 `--build` 参数，这将重新构建容器
 
 详细部署文档：[https://github.com/mkdir700/open-sol-bot/wiki/Deployment](https://github.com/mkdir700/open-sol-bot/wiki/Deployment)
 
@@ -119,9 +145,15 @@ make down
 - 💡 建议先使用小额资金测试
 - 🌟 确保 RPC 节点的稳定性和可用性
 
+## 🤝 如何贡献
+
+我们非常欢迎您对本项目做出贡献！如果您想参与项目开发，请先阅读我们的[贡献指南](CONTRIBUTING.md)。
+
 ## 🙏 特别致谢
+
 - Raydium 交易模块参考自 [AL-THE-BOT-FATHER/raydium_py](https://github.com/AL-THE-BOT-FATHER/raydium_py)
 - Pump 交易模块参考自 [wisarmy/raytx](https://github.com/wisarmy/raytx/blob/main/src/pump.rs)
 
 ## 📄 许可证
+
 [MIT License](./LICENSE)

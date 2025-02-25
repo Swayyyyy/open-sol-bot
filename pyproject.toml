@@ -1,6 +1,6 @@
 [project]
-name = "solana-trading-bot"
-version = "0.1.0"
+name = "open-sol-bot"
+version = "0.1.8"
 description = "Default template for PDM package"
 authors = [{ name = "mkdir700", email = "mkdir700@gmail.com" }]
 dependencies = [
@@ -44,14 +44,17 @@ requires-python = "==3.10.*"
 readme = "README.md"
 license = { text = "MIT" }
 
-[build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
-
 [tool.pdm]
-distribution = true
+distribution = false
 
 [tool.pdm.dev-dependencies]
+local = [
+    "-e solbot-cache @ file:///${PROJECT_ROOT}/libs/cache",
+    "-e solbot-db @ file:///${PROJECT_ROOT}/libs/db",
+    "-e solbot-services @ file:///${PROJECT_ROOT}/libs/services",
+    "-e solbot-common @ file:///${PROJECT_ROOT}/libs/common",
+    "-e solbot-yellowstone-grpc @ file:///${PROJECT_ROOT}/libs/yellowstone_grpc",
+]
 dev = [
     "pytest>=8.3.4",
     "pre-commit>=4.0.1",
@@ -59,7 +62,11 @@ dev = [
     "pytest-asyncio>=0.24.0",
     "pytest-xprocess==0.18.1",
     "py==1.10.0",
+    "-e solbot-trading @ file:///${PROJECT_ROOT}/app/trading",
+    "-e solbot-wallet-tracker @ file:///${PROJECT_ROOT}/app/wallet-tracker",
+    "-e solbot-tgbot @ file:///${PROJECT_ROOT}/app/tg-bot"
 ]
+
 [tool.pytest.ini_options]
 log_cli = true
 log_cli_level = "INFO"

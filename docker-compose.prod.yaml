@@ -25,6 +25,25 @@ services:
       - redis
     command: ["make", "trading"]
 
+  price-monitor:
+    image: open-sol-bot:latest  # 使用预构建的镜像
+    container_name: price-monitor
+    restart: unless-stopped
+    volumes:
+      - ./config.toml:/app/config.toml:ro
+      - ./logs/price-monitor:/app/logs
+    depends_on:
+      - redis
+    command: ["make", "price-monitor"]
+    ports:
+      - "8081:8080"  # 健康检查端口
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
   bot:
     image: open-sol-bot:latest  # 使用预构建的镜像
     container_name: bot

@@ -1,0 +1,57 @@
+# Version control
+.git/
+.gitignore
+.github/
+
+# Python
+__pycache__/
+__pypackages__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
+.venv/
+env/
+venv/
+ENV/
+.pdm-python
+.pdm-build/
+.pytest_cache/
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and databases
+logs/
+*.log
+*.sqlite3
+
+# Build and dist
+dist/
+build/
+*.egg-info/
+
+# Project specific
+tests/
+assets/
+mysql/
+config.test.toml
+example.config.toml
+docker-compose*.yaml
+Dockerfile*
+README.md
+Makefile
+init-os-env.sh
+
+# Keep
+!app/
+!libs/
+!src/
+!pyproject.toml
+!pdm.lock
+!config.toml

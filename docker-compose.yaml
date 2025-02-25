@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   gmgn-tracker:
       build:
@@ -23,61 +21,85 @@ services:
   wallet-tracker:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: app/wallet-tracker/Dockerfile
     restart: unless-stopped
     volumes:
       - ./config.toml:/app/config.toml:ro
+      - ./app/wallet-tracker/wallet_tracker:/app/wallet_tracker:ro
       - ./logs/wallet-tracker:/app/logs
-      - ./src:/app/src  # 开发模式：源代码映射
-      - ./pyproject.toml:/app/pyproject.toml
-      - ./pdm.lock:/app/pdm.lock
-      - ./Makefile:/app/Makefile
+    environment:
+      - PYTHONPATH=/app/libs:/app
+    command: ["wallet_tracker.main"]
     depends_on:
-      - mysql
-      - redis
-    command: ["make", "wallet-tracker"]
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - backend
 
   trading:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: app/trading/Dockerfile
     restart: unless-stopped
     volumes:
       - ./config.toml:/app/config.toml:ro
+      - ./app/trading/trading:/app/trading:ro
       - ./logs/trading:/app/logs
-      - ./src:/app/src  # 开发模式：源代码映射
-      - ./pyproject.toml:/app/pyproject.toml
-      - ./pdm.lock:/app/pdm.lock
-      - ./Makefile:/app/Makefile
+    environment:
+      - PYTHONPATH=/app/libs:/app
+    command: ["trading.main"]
     depends_on:
-      - mysql
-      - redis
-    command: ["make", "trading"]
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - backend
 
   bot:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: app/tg-bot/Dockerfile
     restart: unless-stopped
     volumes:
       - ./config.toml:/app/config.toml:ro
-      - ./logs/bot/:/app/logs
-      - ./src:/app/src  # 开发模式：源代码映射
-      - ./pyproject.toml:/app/pyproject.toml
-      - ./pdm.lock:/app/pdm.lock
-      - ./Makefile:/app/Makefile
+      - ./app/tg-bot/tg_bot:/app/tg_bot:ro
+      - ./logs/tg-bot:/app/logs
+    environment:
+      - PYTHONPATH=/app/libs:/app
+    command: ["tg_bot.main"]
     depends_on:
-      - mysql
-      - redis
-      - wallet-tracker
-      - trading
-    command: ["make", "bot"]
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      wallet-tracker:
+        condition: service_started
+      trading:
+        condition: service_started
     networks:
       - backend
+
+  # price-monitor:
+  #   build:
+  #     context: .
+  #     dockerfile: app/price-monitor/Dockerfile
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./config.toml:/app/config.toml:ro
+  #     - ./logs/price-monitor:/app/logs
+  #   environment:
+  #     - DISPLAY=:99
+  #   shm_size: 2gb
+  #   cap_add:
+  #     - SYS_ADMIN
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #   networks:
+  #     - backend
 
   mysql:
     image: docker.io/library/mysql:8.0
@@ -92,31 +114,33 @@ services:
       - "3307:3306"
     command: --default-authentication-plugin=mysql_native_password
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 5s
-      retries: 10
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
     networks:
       - backend
 
   redis:
-    image: docker.io/library/redis:7-alpine
+    image: docker.io/library/redis:7.2-alpine
     restart: unless-stopped
     volumes:
       - redis_data:/data
+    command: redis-server --appendonly yes
     ports:
       - "6380:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 5s
+      timeout: 3s
+      retries: 3
     networks:
       - backend
-
-volumes:
-  mysql_data:
-  redis_data:
 
 networks:
   backend:
     driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:
