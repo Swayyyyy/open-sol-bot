@@ -2,19 +2,16 @@ services:
   gmgn-tracker:
       build:
         context: .
-        dockerfile: gmgnDckerfile
+        dockerfile: app/gmgn/Dockerfile
       restart: unless-stopped
       volumes:
         - ./config.toml:/app/config.toml:ro
-        - ./logs/wallet-tracker:/app/logs
-        - ./src:/app/src  # 开发模式：源代码映射
-        - ./pyproject.toml:/app/pyproject.toml
-        - ./pdm.lock:/app/pdm.lock
-        - ./Makefile:/app/Makefile
+        - ./logs/gmgn:/app/logs
+        - ./app/gmgn/gmgnbot:/app/gmgnbot:ro
       depends_on:
         - mysql
         - redis
-      command: ["make", "gmgn-tracker"]
+      command: ["gmgnbot.main"]
       networks:
         - backend
 

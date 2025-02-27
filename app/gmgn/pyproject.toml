@@ -1,0 +1,72 @@
+[project]
+name = "open-sol-bot"
+version = "0.1.9"
+description = "Default template for PDM package"
+authors = [{ name = "mkdir700", email = "mkdir700@gmail.com" }]
+dependencies = [
+    "solana>=0.35.1",
+    "python-dotenv>=1.0.1",
+    "loguru>=0.7.2",
+    "solders>=0.21.0",
+    "base58>=2.1.1",
+    "tomli>=2.1.0",
+    "sqlmodel>=0.0.22",
+    "pydantic-settings>=2.6.1",
+    "pydantic-settings-toml>=0.2.0",
+    "orjson>=3.10.11",
+    "aioredis[hiredis]>=2.0.1",
+    "pymysql>=1.1.1",
+    "anchorpy>=0.20.1",
+    "backoff>=2.2.1",
+    "solana-tx-parser>=0.0.1",
+    "sentry-sdk>=2.21.0",
+    "cryptography>=44.0.0",
+    "grpcio>=1.68.1",
+    "grpcio-tools>=1.68.1",
+    "protobuf>=5.29.0",
+    "grpcio-health-checking>=1.68.1",
+    "aiogram>=3.15.0",
+    "aiohttp<3.11,>=3.9.0",
+    "jinja2>=3.1.4",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "aiomysql>=0.2.0",
+    "jupiter-python-sdk>=0.0.2.0",
+    "aiocache[redis]>=0.12.3",
+    "pandas>=2.2.3",
+    "DrissionPage>=4.1.0.17",
+    "fastapi>=0.115.8",
+    "pydantic>=2.9.2",
+    "uvicorn>=0.34.0",
+    "pyvirtualdisplay>=3.0",
+    "bs4>=0.0.2"
+]
+requires-python = "==3.10.*"
+readme = "README.md"
+license = { text = "MIT" }
+
+[tool.pdm]
+distribution = false
+
+[tool.pdm.dev-dependencies]
+local = [
+    "-e solbot-cache @ file:///${PROJECT_ROOT}/libs/cache",
+    "-e solbot-db @ file:///${PROJECT_ROOT}/libs/db",
+    "-e solbot-services @ file:///${PROJECT_ROOT}/libs/services",
+    "-e solbot-common @ file:///${PROJECT_ROOT}/libs/common",
+    "-e solbot-yellowstone-grpc @ file:///${PROJECT_ROOT}/libs/yellowstone_grpc",
+]
+dev = [
+    "pytest>=8.3.4",
+    "pre-commit>=4.0.1",
+    "jupyter>=1.1.1",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xprocess==0.18.1",
+    "py==1.10.0",
+    "-e solbot-trading @ file:///${PROJECT_ROOT}/app/trading",
+    "-e solbot-wallet-tracker @ file:///${PROJECT_ROOT}/app/wallet-tracker",
+    "-e solbot-tgbot @ file:///${PROJECT_ROOT}/app/tg-bot"
+]
+
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "INFO"

@@ -30,7 +30,7 @@ FROM builder as final
 
 # Install dependencies
 COPY ./libs /app/libs
-COPY ./app/tg-bot/pyproject.toml /app/
+COPY ./app/gmgn/pyproject.toml /app/
 RUN pdm config python.use_venv false && \
     pdm install -G local
 

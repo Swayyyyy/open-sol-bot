@@ -1,4 +1,4 @@
-from Data.CloudflareBypasser import CloudflareBypasser
+from gmgnbot.Data.CloudflareBypasser import CloudflareBypasser
 from DrissionPage import ChromiumPage, ChromiumOptions
 from urllib.parse import urlencode
 from common.log import logger

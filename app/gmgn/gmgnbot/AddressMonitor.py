@@ -1,24 +1,22 @@
 import asyncio
 import signal
 
-from Data import GMGN, OKLine
+from gmgnbot.Data import GMGN, OKLine
 from common.log import logger
 from common.prestart import pre_start
 from common.config import settings
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.redis import RedisClient
 from db.session import NEW_ASYNC_SESSION, provide_session
-from pump_monitor.new_token import NewTokenSubscriber
-from pump_monitor.store import NewTokenStore
 import time
 import datetime
 from collections import Counter
 from dataclasses import dataclass
 from common.models.tg_bot.monitor import Monitor as MonitorModel
 from common.config import settings
-from constants import NEW_TOKEN_CHANNEL
+from gmgnbot.constants import NEW_TOKEN_CHANNEL
 
-from tg_bot.services.monitor import MonitorService
+from gmgnbot.monitor.monitor import MonitorService
 
 monitor_service = MonitorService()
 
@@ -34,8 +32,6 @@ class Monitor:
 class AddressMonitor():
     def __init__(self):
         self.tasks: set[asyncio.Task] = set()
-        self.store: NewTokenStore | None = None
-        self.subscriber: NewTokenSubscriber | None = None
         self._shutdown_event = asyncio.Event()
         self.OKLine = OKLine(settings.okline.channelAccessToken)
         self.tokens_history = {}

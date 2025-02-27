@@ -1,23 +1,19 @@
 import asyncio
 import signal
 
-from Data import GMGN, OKLine
+from gmgnbot.Data import GMGN, OKLine
 from common.log import logger
 from common.prestart import pre_start
 from common.config import settings
 
 from db.redis import RedisClient
-from pump_monitor.new_token import NewTokenSubscriber
-from pump_monitor.store import NewTokenStore
 import time
 import datetime
-from constants import NEW_TOKEN_QUEUE_KEY, NEW_TOKEN_CHANNEL
+from gmgnbot.constants import NEW_TOKEN_QUEUE_KEY, NEW_TOKEN_CHANNEL
 
 class GmgnMontior:
     def __init__(self):
         self.tasks: set[asyncio.Task] = set()
-        self.store: NewTokenStore | None = None
-        self.subscriber: NewTokenSubscriber | None = None
         self._shutdown_event = asyncio.Event()
         self.gmgn_monitor = GMGN()
         self.OKLine = OKLine(settings.okline.channelAccessToken)
