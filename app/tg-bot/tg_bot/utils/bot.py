@@ -1,8 +1,5 @@
-import asyncio
-
 import httpx
-
-from common.config import settings
+from solbot_common.config import settings
 
 # {
 #     "ok": true,

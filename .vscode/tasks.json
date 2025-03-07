@@ -1,0 +1,69 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "运行 Cache Preloader 服务",
+      "type": "shell",
+      "command": "uv run python app/cache-preloader/cache_preloader/main.py",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      },
+      "detail": "启动 Cache Preloader 服务"
+    },
+    {
+      "label": "运行 Wallet Tracker 服务",
+      "type": "shell",
+      "command": "uv run python app/wallet-tracker/wallet_tracker/main.py",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      },
+      "detail": "启动 Wallet Tracker 服务"
+    },
+    {
+      "label": "运行 Trading 服务",
+      "type": "shell",
+      "command": "uv run python app/trading/trading/main.py",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      },
+      "detail": "启动 Trading 服务"
+    },
+    {
+      "label": "运行 Tg Bot 服务",
+      "type": "shell",
+      "command": "uv run python app/tg-bot/tg_bot/main.py",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      },
+      "detail": "启动 Tg Bot 服务"
+    }
+  ]
+}

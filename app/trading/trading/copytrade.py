@@ -6,20 +6,19 @@
 import asyncio
 from typing import Literal
 
-from common.constants import SOL_DECIMAL, WSOL
-from common.cp.copytrade_event import NotifyCopyTradeProducer
-from common.cp.swap_event import SwapEventProducer
-from common.cp.tx_event import TxEventConsumer
-from common.log import logger
-from common.models.tg_bot.copytrade import CopyTrade
-from common.types.swap import SwapEvent
-from common.types.tx import TxEvent, TxType
-from common.utils import calculate_auto_slippage
-from db.redis import RedisClient
-from services.copytrade import CopyTradeService
-from services.holding import HoldingService
-from services.bot_setting import BotSettingService as SettingService
-
+from solbot_common.constants import SOL_DECIMAL, WSOL
+from solbot_common.cp.copytrade_event import NotifyCopyTradeProducer
+from solbot_common.cp.swap_event import SwapEventProducer
+from solbot_common.cp.tx_event import TxEventConsumer
+from solbot_common.log import logger
+from solbot_common.models.tg_bot.copytrade import CopyTrade
+from solbot_common.types.swap import SwapEvent
+from solbot_common.types.tx import TxEvent, TxType
+from solbot_common.utils import calculate_auto_slippage
+from solbot_db.redis import RedisClient
+from solbot_services.bot_setting import BotSettingService as SettingService
+from solbot_services.copytrade import CopyTradeService
+from solbot_services.holding import HoldingService
 
 IGNORED_MINTS = {
     "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",  # USDC
@@ -48,9 +47,7 @@ class CopyTradeProcessor:
     async def _process_tx_event(self, tx_event: TxEvent):
         """处理交易事件"""
         logger.info(f"Processing tx event: {tx_event}")
-        copytrade_items = await self.copytrade_service.get_by_target_wallet(
-            tx_event.who
-        )
+        copytrade_items = await self.copytrade_service.get_by_target_wallet(tx_event.who)
         swap_mode = "ExactIn" if tx_event.tx_direction == "buy" else "ExactOut"
         # buy_pct = 0
         sell_pct = 0
@@ -105,9 +102,7 @@ class CopyTradeProcessor:
         copytrade: CopyTrade,
     ):
         if input_mint in IGNORED_MINTS or output_mint in IGNORED_MINTS:
-            logger.info(
-                f"Skipping swap due to ignored mint: {input_mint} {output_mint}"
-            )
+            logger.info(f"Skipping swap due to ignored mint: {input_mint} {output_mint}")
             return
 
         try:
@@ -115,9 +110,7 @@ class CopyTradeProcessor:
             setting = await self.setting_service.get(copytrade.chat_id, copytrade.owner)
             if setting is None:
                 raise ValueError(
-                    "Setting not found, chat_id: {}, wallet: {}".format(
-                        copytrade.chat_id, copytrade.owner
-                    )
+                    f"Setting not found, chat_id: {copytrade.chat_id}, wallet: {copytrade.owner}"
                 )
 
             if swap_mode == "ExactIn":
@@ -130,7 +123,7 @@ class CopyTradeProcessor:
                     # TODO: 跟随买入
                     raise NotImplementedError("auto_follow")
                 else:
-                    assert False, "not possible"
+                    raise AssertionError("not possible")
             else:
                 # 获取当前持仓的数量
                 balance = await self.holding_service.get_token_account_balance(

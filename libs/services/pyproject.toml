@@ -1,6 +1,6 @@
 [project]
 name = "solbot-services"
-version = "0.1.9"
+version = "0.2.0"
 description = "Common services for Solana Trading Bot"
 authors = [{ name = "mkdir700", email = "mkdir700@gmail.com" }]
 dependencies = [
@@ -39,7 +39,7 @@ dependencies = [
     "aiocache[redis]>=0.12.3",
 ]
 requires-python = "==3.10.*"
-license = { text = "MIT" }
+license = { text = "Apache-2.0" }
 
 [build-system]
 requires = ["pdm-backend"]

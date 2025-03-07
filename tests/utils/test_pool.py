@@ -1,5 +1,5 @@
 import pytest
-from common.utils.pool import fetch_amm_v4_pool_keys
+from solbot_common.utils.pool import fetch_amm_v4_pool_keys
 
 
 @pytest.mark.asyncio

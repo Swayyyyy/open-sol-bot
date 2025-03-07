@@ -4,8 +4,8 @@ from typing import cast
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply, Message
+from solbot_common.log import logger
 
-from common.log import logger
 from tg_bot.conversations.monitor.render import render
 from tg_bot.conversations.states import MonitorStates
 from tg_bot.keyboards.common import back_keyboard, confirm_keyboard
@@ -163,9 +163,7 @@ async def delete_monitor(callback: CallbackQuery, state: FSMContext):
     await callback.message.reply(
         text,
         parse_mode="HTML",
-        reply_markup=confirm_keyboard(
-            "confirm_delete_monitor", "cancel_delete_monitor"
-        ),
+        reply_markup=confirm_keyboard("confirm_delete_monitor", "cancel_delete_monitor"),
     )
 
 

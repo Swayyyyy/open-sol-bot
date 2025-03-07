@@ -2,18 +2,18 @@ import base64
 import time
 
 from solana.rpc.async_api import AsyncClient
+from solbot_cache import get_latest_blockhash
+from solbot_common.config import settings
+from solbot_common.constants import SOL_DECIMAL
+from solbot_common.log import logger
 from solders.compute_budget import set_compute_unit_limit, set_compute_unit_price  # type: ignore
 from solders.keypair import Keypair  # type: ignore
 from solders.message import MessageV0  # type: ignore
-from solders.signature import Signature  # type: ignore
-from solders.transaction import VersionedTransaction  # type: ignore
-from solders.system_program import transfer, TransferParams
 from solders.pubkey import Pubkey  # type: ignore
-from common.constants import SOL_DECIMAL
+from solders.signature import Signature  # type: ignore
+from solders.system_program import TransferParams, transfer
+from solders.transaction import VersionedTransaction  # type: ignore
 
-from cache import BlockhashCache
-from common.config import settings
-from common.log import logger
 from trading.utils import calc_tx_units, calc_tx_units_and_split_fees
 
 
@@ -56,9 +56,7 @@ async def build_transaction(
             transfer(
                 TransferParams(
                     from_pubkey=keypair.pubkey(),
-                    to_pubkey=Pubkey.from_string(
-                        "96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5"
-                    ),
+                    to_pubkey=Pubkey.from_string("96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5"),
                     lamports=int(jito_fee * SOL_DECIMAL),
                 )
             )
@@ -66,17 +64,13 @@ async def build_transaction(
     elif priority_fee is not None:
         unit_price, unit_limit = calc_tx_units(priority_fee)
         logger.info(
-            "Using custom priority fee, unit limit: {}, unit price: {}".format(
-                unit_limit, unit_price
-            )
+            f"Using custom priority fee, unit limit: {unit_limit}, unit price: {unit_price}"
         )
         instructions.insert(0, set_compute_unit_limit(unit_limit))
         instructions.insert(1, set_compute_unit_price(unit_price))
     else:
         logger.info(
-            "Using default priority fee, unit limit: {}, unit price: {}".format(
-                settings.trading.unit_limit, settings.trading.unit_price
-            )
+            f"Using default priority fee, unit limit: {settings.trading.unit_limit}, unit price: {settings.trading.unit_price}"
         )
         unit_price, unit_limit = (
             settings.trading.unit_price,
@@ -87,7 +81,7 @@ async def build_transaction(
     instructions.insert(1, set_compute_unit_price(unit_price))
 
     # init tx
-    recent_blockhash, _ = await BlockhashCache.get()
+    recent_blockhash, _ = await get_latest_blockhash()
 
     message = MessageV0.try_compile(
         payer=keypair.pubkey(),
@@ -111,7 +105,7 @@ async def new_signed_and_send_transaction(
         instructions.insert(1, set_compute_unit_price(settings.trading.unit_price))
 
     # init tx
-    recent_blockhash, _ = await BlockhashCache.get()
+    recent_blockhash, _ = await get_latest_blockhash()
 
     message = MessageV0.try_compile(
         payer=keypair.pubkey(),

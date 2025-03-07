@@ -3,9 +3,9 @@ import asyncio
 import aioredis
 from aiogram import Bot
 
+from .copytrade_trigger import CopyTradeNotify
 from .smart_swap import SmartWalletSwapAlertNotify
 from .swap_result import SwapResultNotify
-from .copytrade_trigger import CopyTradeNotify
 
 
 class Notify:

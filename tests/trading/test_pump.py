@@ -1,8 +1,9 @@
 import os
+
 import pytest
 from solders.keypair import Keypair
-from trading.swap_protocols.pump import Pump
 from trading.swap import SwapDirection
+from trading.swap_protocols.pump import Pump
 from trading.utils import get_async_client
 
 

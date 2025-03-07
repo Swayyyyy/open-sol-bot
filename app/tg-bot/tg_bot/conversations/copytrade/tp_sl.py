@@ -10,12 +10,8 @@ from tg_bot.conversations.states import CopyTradeStates
 router = Router()
 
 
-@router.callback_query(
-    F.data == "toggle_take_profile_and_stop_loss", CopyTradeStates.CREATING
-)
-@router.callback_query(
-    F.data == "toggle_take_profile_and_stop_loss", CopyTradeStates.EDITING
-)
+@router.callback_query(F.data == "toggle_take_profile_and_stop_loss", CopyTradeStates.CREATING)
+@router.callback_query(F.data == "toggle_take_profile_and_stop_loss", CopyTradeStates.EDITING)
 async def toggle_take_profile_and_stop_loss(callback: CallbackQuery, state: FSMContext):
     """Toggle take profit and stop loss settings"""
     if callback.message is None:

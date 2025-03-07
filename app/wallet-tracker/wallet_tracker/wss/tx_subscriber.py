@@ -1,15 +1,15 @@
 import asyncio
-from typing import Sequence
+from collections.abc import Sequence
 
 import orjson as json
 from aioredis import Redis
 from aioredis.exceptions import RedisError
 from solana.rpc.async_api import AsyncClient as Client
+from solbot_common.config import settings
+from solbot_common.log import logger
 from solders.pubkey import Pubkey  # type: ignore
 from solders.signature import Signature  # type: ignore
 
-from common.config import settings
-from common.log import logger
 from wallet_tracker import benchmark
 from wallet_tracker.constants import (
     FAILED_TX_SIGNATURE_CHANNEL,
@@ -57,9 +57,7 @@ class TransactionDetailSubscriber:
         try:
             remaining = set(tasks)
             while remaining:
-                done, remaining = await asyncio.wait(
-                    remaining, return_when=asyncio.FIRST_COMPLETED
-                )
+                done, remaining = await asyncio.wait(remaining, return_when=asyncio.FIRST_COMPLETED)
 
                 # 检查完成的任务结果
                 for task in done:
@@ -86,9 +84,7 @@ class TransactionDetailSubscriber:
                     task.cancel()
             return None
 
-    async def _fetch_with_name(
-        self, fetcher_name: str, fetcher, tx_sig: str
-    ) -> dict | None:
+    async def _fetch_with_name(self, fetcher_name: str, fetcher, tx_sig: str) -> dict | None:
         try:
             logger.info(f"Fetching transaction from {fetcher_name}")
             tx_detail = await fetcher(Signature.from_string(tx_sig))
@@ -131,9 +127,7 @@ class TransactionDetailSubscriber:
             logger.info(f"Tx is not swap transaction, details: {tx_sig}")
             return
         except Exception as e:
-            logger.error(
-                f"Failed to process transaction: {e}, details: {tx_detail_text}"
-            )
+            logger.error(f"Failed to process transaction: {e}, details: {tx_detail_text}")
             logger.exception(e)
             # 加入到失败队列
             await self.push_failed_transaction_to_redis(tx_detail_text)
@@ -179,7 +173,9 @@ class TransactionDetailSubscriber:
                 for worker in self.workers:
                     worker.cancel()
 
-        asyncio.create_task(_f())
+        monitor_task = asyncio.create_task(_f())
+        # 添加任务完成回调以处理可能的异常
+        monitor_task.add_done_callback(lambda t: t.exception() if t.exception() else None)
 
     async def stop(self) -> None:
         """Stop the wallet monitor gracefully."""

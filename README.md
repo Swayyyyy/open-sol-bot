@@ -92,6 +92,13 @@ cp example.config.toml config.toml
   shyft_api_base_url = "https://api.shyft.to"
   shyft_api_key = ""
   ```
+- `db`: 数据库连接配置，默认配置适用于本地开发环境。在 Docker 环境中会自动使用容器别名。
+  ```
+  [db]
+  # 本地开发环境（从源码运行）
+  mysql_url = "mysql+pymysql://root:root@127.0.0.1:3307/solana_trade_bot"
+  redis_url = "redis://127.0.0.1:6380/0"
+  ```
 
 > 💡 为了获得更快的跟单速度，默认使用 `geyser` 模式，同时也支持 WebSocket 订阅方式
 

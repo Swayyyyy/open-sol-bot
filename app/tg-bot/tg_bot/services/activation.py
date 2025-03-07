@@ -2,13 +2,11 @@ import random
 import string
 import time
 from datetime import datetime
-from typing import Optional
 
+from solbot_common.models.tg_bot.activation_code import ActivationCode
+from solbot_common.models.tg_bot.user_license import UserLicense
+from solbot_db.session import NEW_ASYNC_SESSION, provide_session
 from sqlmodel import select
-
-from common.models.tg_bot.activation_code import ActivationCode
-from common.models.tg_bot.user_license import UserLicense
-from db.session import NEW_ASYNC_SESSION, provide_session
 
 
 class ActivationCodeService:
@@ -49,9 +47,7 @@ class ActivationCodeService:
     #         return False
 
     @provide_session
-    async def activate_user(
-        self, chat_id: int, code: str, *, session=NEW_ASYNC_SESSION
-    ) -> bool:
+    async def activate_user(self, chat_id: int, code: str, *, session=NEW_ASYNC_SESSION) -> bool:
         """
         激活用户
         :param chat_id: 用户的chat_id
@@ -60,9 +56,7 @@ class ActivationCodeService:
         """
         # 查询激活码
         result = await session.execute(
-            select(ActivationCode).where(
-                ActivationCode.code == code, ActivationCode.used == False
-            )
+            select(ActivationCode).where(ActivationCode.code == code, ActivationCode.used == False)
         )
         activation_code = result.scalar_one_or_none()
         if not activation_code:
@@ -74,9 +68,7 @@ class ActivationCodeService:
         activation_code.used_at = datetime.now()
 
         # 更新或创建用户授权
-        result = await session.execute(
-            select(UserLicense).where(UserLicense.chat_id == chat_id)
-        )
+        result = await session.execute(select(UserLicense).where(UserLicense.chat_id == chat_id))
         user_license = result.scalar_one_or_none()
 
         if user_license:
@@ -93,30 +85,24 @@ class ActivationCodeService:
     @provide_session
     async def get_user_license(
         self, chat_id: int, *, session=NEW_ASYNC_SESSION
-    ) -> Optional[UserLicense]:
+    ) -> UserLicense | None:
         """
         获取用户授权信息
         :param chat_id: 用户的chat_id
         :return: 用户授权信息
         """
-        result = await session.execute(
-            select(UserLicense).where(UserLicense.chat_id == chat_id)
-        )
+        result = await session.execute(select(UserLicense).where(UserLicense.chat_id == chat_id))
         return result.scalar_one_or_none()
 
     @provide_session
-    async def is_user_authorized(
-        self, chat_id: int, *, session=NEW_ASYNC_SESSION
-    ) -> bool:
+    async def is_user_authorized(self, chat_id: int, *, session=NEW_ASYNC_SESSION) -> bool:
         """
         检查用户是否有可用时长
         :param chat_id: 用户的chat_id
         :return: 是否有可用时长
         """
         user_license = await self.get_user_license(chat_id, session=session)
-        return user_license is not None and user_license.expired_timestamp > int(
-            time.time()
-        )
+        return user_license is not None and user_license.expired_timestamp > int(time.time())
 
     @provide_session
     async def deduct_user_time(
@@ -128,9 +114,7 @@ class ActivationCodeService:
         :param minutes: 要扣除的分钟数
         :return: 是否扣除成功
         """
-        result = await session.execute(
-            select(UserLicense).where(UserLicense.chat_id == chat_id)
-        )
+        result = await session.execute(select(UserLicense).where(UserLicense.chat_id == chat_id))
         user_license = result.scalar_one_or_none()
 
         if not user_license or user_license.expired_timestamp < seconds:
@@ -140,9 +124,7 @@ class ActivationCodeService:
         return True
 
     @provide_session
-    async def get_user_expired_timestamp(
-        self, chat_id: int, *, session=NEW_ASYNC_SESSION
-    ) -> int:
+    async def get_user_expired_timestamp(self, chat_id: int, *, session=NEW_ASYNC_SESSION) -> int:
         """获取到期时间（秒）
         :param chat_id: 用户的chat_id
         :return: 用户到期时间（秒）

@@ -1,53 +1,53 @@
-from typing import Dict, List, Optional, Union
 from google.protobuf.message import Message
+
 from .solana_storage_pb2 import (
-    Transaction,
-    TransactionStatusMeta,
-    TransactionError,
-    Reward,
-    UnixTimestamp,
     BlockHeight,
+    Reward,
+    Transaction,
+    TransactionError,
+    TransactionStatusMeta,
+    UnixTimestamp,
 )
 
 class SubscribeRequestFilterAccountsFilterMemcmp(Message):
     offset: int
-    data: Union[bytes, str]
+    data: bytes | str
     data_type: str
 
 class SubscribeRequestFilterAccountsFilterLamports(Message):
-    eq: Optional[int]
-    ne: Optional[int]
-    lt: Optional[int]
-    gt: Optional[int]
+    eq: int | None
+    ne: int | None
+    lt: int | None
+    gt: int | None
 
 class SubscribeRequestFilterAccountsFilter(Message):
-    memcmp: Optional[SubscribeRequestFilterAccountsFilterMemcmp]
-    datasize: Optional[int]
-    token_account_state: Optional[bool]
-    lamports: Optional[SubscribeRequestFilterAccountsFilterLamports]
+    memcmp: SubscribeRequestFilterAccountsFilterMemcmp | None
+    datasize: int | None
+    token_account_state: bool | None
+    lamports: SubscribeRequestFilterAccountsFilterLamports | None
 
 class SubscribeRequestFilterAccounts(Message):
-    account: List[str]
-    owner: List[str]
-    filters: List[SubscribeRequestFilterAccountsFilter]
-    nonempty_txn_signature: Optional[bool]
+    account: list[str]
+    owner: list[str]
+    filters: list[SubscribeRequestFilterAccountsFilter]
+    nonempty_txn_signature: bool | None
 
 class SubscribeRequestFilterSlots(Message):
-    filter_by_commitment: Optional[bool]
+    filter_by_commitment: bool | None
 
 class SubscribeRequestFilterTransactions(Message):
-    vote: Optional[bool]
-    failed: Optional[bool]
-    signature: Optional[str]
-    account_include: List[str]
-    account_exclude: List[str]
-    account_required: List[str]
+    vote: bool | None
+    failed: bool | None
+    signature: str | None
+    account_include: list[str]
+    account_exclude: list[str]
+    account_required: list[str]
 
 class SubscribeRequestFilterBlocks(Message):
-    account_include: List[str]
-    include_transactions: Optional[bool]
-    include_accounts: Optional[bool]
-    include_entries: Optional[bool]
+    account_include: list[str]
+    include_transactions: bool | None
+    include_accounts: bool | None
+    include_entries: bool | None
 
 class SubscribeRequestFilterBlocksMeta(Message):
     pass
@@ -63,16 +63,16 @@ class SubscribeRequestPing(Message):
     id: int
 
 class SubscribeRequest(Message):
-    accounts: Dict[str, SubscribeRequestFilterAccounts]
-    slots: Dict[str, SubscribeRequestFilterSlots]
-    transactions: Dict[str, SubscribeRequestFilterTransactions]
-    transactions_status: Dict[str, SubscribeRequestFilterTransactions]
-    blocks: Dict[str, SubscribeRequestFilterBlocks]
-    blocks_meta: Dict[str, SubscribeRequestFilterBlocksMeta]
-    entry: Dict[str, SubscribeRequestFilterEntry]
-    commitment: Optional[int]
-    accounts_data_slice: List[SubscribeRequestAccountsDataSlice]
-    ping: Optional[SubscribeRequestPing]
+    accounts: dict[str, SubscribeRequestFilterAccounts]
+    slots: dict[str, SubscribeRequestFilterSlots]
+    transactions: dict[str, SubscribeRequestFilterTransactions]
+    transactions_status: dict[str, SubscribeRequestFilterTransactions]
+    blocks: dict[str, SubscribeRequestFilterBlocks]
+    blocks_meta: dict[str, SubscribeRequestFilterBlocksMeta]
+    entry: dict[str, SubscribeRequestFilterEntry]
+    commitment: int | None
+    accounts_data_slice: list[SubscribeRequestAccountsDataSlice]
+    ping: SubscribeRequestPing | None
 
 class SubscribeUpdateAccountInfo(Message):
     pubkey: bytes
@@ -82,7 +82,7 @@ class SubscribeUpdateAccountInfo(Message):
     rent_epoch: int
     data: bytes
     write_version: int
-    txn_signature: Optional[bytes]
+    txn_signature: bytes | None
 
 class SubscribeUpdateAccount(Message):
     account: SubscribeUpdateAccountInfo
@@ -91,9 +91,9 @@ class SubscribeUpdateAccount(Message):
 
 class SubscribeUpdateSlot(Message):
     slot: int
-    parent: Optional[int]
+    parent: int | None
     status: int
-    dead_error: Optional[str]
+    dead_error: str | None
 
 class SubscribeUpdateTransactionInfo(Message):
     signature: bytes
@@ -130,11 +130,11 @@ class SubscribeUpdateBlock(Message):
     parent_slot: int
     parent_blockhash: str
     executed_transaction_count: int
-    transactions: List[SubscribeUpdateTransactionInfo]
+    transactions: list[SubscribeUpdateTransactionInfo]
     updated_account_count: int
-    accounts: List[SubscribeUpdateAccountInfo]
+    accounts: list[SubscribeUpdateAccountInfo]
     entries_count: int
-    entries: List[SubscribeUpdateEntry]
+    entries: list[SubscribeUpdateEntry]
 
 class SubscribeUpdateBlockMeta(Message):
     slot: int
@@ -154,16 +154,16 @@ class SubscribeUpdatePong(Message):
     id: int
 
 class SubscribeUpdate(Message):
-    filters: List[str]
-    account: Optional[SubscribeUpdateAccount]
-    slot: Optional[SubscribeUpdateSlot]
-    transaction: Optional[SubscribeUpdateTransaction]
-    transaction_status: Optional[SubscribeUpdateTransactionStatus]
-    block: Optional[SubscribeUpdateBlock]
-    block_meta: Optional[SubscribeUpdateBlockMeta]
-    entry: Optional[SubscribeUpdateEntry]
-    ping: Optional[SubscribeUpdatePing]
-    pong: Optional[SubscribeUpdatePong]
+    filters: list[str]
+    account: SubscribeUpdateAccount | None
+    slot: SubscribeUpdateSlot | None
+    transaction: SubscribeUpdateTransaction | None
+    transaction_status: SubscribeUpdateTransactionStatus | None
+    block: SubscribeUpdateBlock | None
+    block_meta: SubscribeUpdateBlockMeta | None
+    entry: SubscribeUpdateEntry | None
+    ping: SubscribeUpdatePing | None
+    pong: SubscribeUpdatePong | None
 
 class PingRequest(Message):
     count: int
@@ -172,7 +172,7 @@ class PongResponse(Message):
     count: int
 
 class GetLatestBlockhashRequest(Message):
-    commitment: Optional[int]
+    commitment: int | None
 
 class GetLatestBlockhashResponse(Message):
     slot: int
@@ -180,13 +180,13 @@ class GetLatestBlockhashResponse(Message):
     last_valid_block_height: int
 
 class GetBlockHeightRequest(Message):
-    commitment: Optional[int]
+    commitment: int | None
 
 class GetBlockHeightResponse(Message):
     block_height: int
 
 class GetSlotRequest(Message):
-    commitment: Optional[int]
+    commitment: int | None
 
 class GetSlotResponse(Message):
     slot: int
@@ -199,7 +199,7 @@ class GetVersionResponse(Message):
 
 class IsBlockhashValidRequest(Message):
     blockhash: str
-    commitment: Optional[int]
+    commitment: int | None
 
 class IsBlockhashValidResponse(Message):
     slot: int

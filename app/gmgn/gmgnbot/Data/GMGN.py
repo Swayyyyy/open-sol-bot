@@ -1,7 +1,7 @@
 from gmgnbot.Data.CloudflareBypasser import CloudflareBypasser
 from DrissionPage import ChromiumPage, ChromiumOptions
 from urllib.parse import urlencode
-from common.log import logger
+from solbot_common.log import logger
 import pandas as pd
 import json
 from datetime import datetime, timedelta

@@ -1,18 +1,17 @@
 import asyncio
 
-from aiogram.types import LinkPreviewOptions
 import aioredis
 from aiogram import Bot
 from aiogram.enums import ParseMode
+from aiogram.types import LinkPreviewOptions
 from jinja2 import BaseLoader, Environment
+from solbot_cache.token_info import TokenInfoCache
+from solbot_common.cp.swap_result import SwapResultConsumer
+from solbot_common.log import logger
+from solbot_common.models.swap_record import TransactionStatus
+from solbot_common.types.swap import SwapResult
 
-from cache.token_info import TokenInfoCache
-from common.cp.swap_result import SwapResultConsumer
-from common.log import logger
-from common.models.swap_record import TransactionStatus
-from common.types.swap import SwapResult
 from tg_bot.services.user import UserService
-
 
 env = Environment(
     loader=BaseLoader(),
@@ -78,9 +77,7 @@ class SwapResultNotify:
     async def _build_message_for_copytrade(self, data: SwapResult) -> str:
         """构建用于跟单交易结果的消息"""
         event = data.swap_event
-        if event.swap_mode == "ExactIn":
-            pass
-        elif event.swap_mode == "ExactOut":
+        if event.swap_mode == "ExactIn" or event.swap_mode == "ExactOut":
             pass
         else:
             raise ValueError(f"Invalid swap_mode: {event.swap_mode}")
@@ -154,9 +151,7 @@ class SwapResultNotify:
         try:
             logger.info(f"Handling SwapResult: {data}")
             message = await self.build_message(data)
-            chat_id_list = await self.user_service.get_chat_id_by_pubkey(
-                data.user_pubkey
-            )
+            chat_id_list = await self.user_service.get_chat_id_by_pubkey(data.user_pubkey)
 
             async def _f(chat_id: int):
                 await self.bot.send_message(

@@ -21,7 +21,7 @@ def monitor_keyboard_menu(
             wallet_name = item.wallet_alias
         current_row.append(
             InlineKeyboardButton(
-                text=f"{str(idx)} - {wallet_name}",
+                text=f"{idx!s} - {wallet_name}",
                 callback_data=f"monitor_{item.pk}",
             )
         )

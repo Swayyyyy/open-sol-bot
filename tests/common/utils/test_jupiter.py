@@ -1,5 +1,5 @@
 import pytest
-from common.utils.jupiter import JupiterAPI
+from solbot_common.utils.jupiter import JupiterAPI
 
 
 @pytest.mark.asyncio

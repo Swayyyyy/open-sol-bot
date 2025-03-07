@@ -1,7 +1,8 @@
 from aiogram import types
+
 from tg_bot.keyboards.monitor import monitor_keyboard_menu
-from tg_bot.templates import render_monitor_menu
 from tg_bot.services.monitor import MonitorService
+from tg_bot.templates import render_monitor_menu
 
 
 async def render(callback: types.CallbackQuery) -> dict:

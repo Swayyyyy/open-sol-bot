@@ -163,6 +163,3 @@ cython_debug/
 config.toml
 config.test.toml
 .DS_Store
-
-# VS Code
-.vscode/

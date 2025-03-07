@@ -32,9 +32,7 @@ def mock_keypair():
 class MockBuilder(TransactionBuilder):
     """用于测试的模拟构建器"""
 
-    def __init__(
-        self, rpc_client: AsyncClient, delay: float = 0, should_fail: bool = False
-    ):
+    def __init__(self, rpc_client: AsyncClient, delay: float = 0, should_fail: bool = False):
         super().__init__(rpc_client)
         self.delay = delay
         self.should_fail = should_fail
@@ -134,9 +132,7 @@ async def test_trading_service_use_route():
     with (
         patch("trading.transaction.factory.GMGNTransactionSender") as mock_gmgn_sender,
         patch("trading.transaction.factory.JitoTransactionSender") as mock_jito_sender,
-        patch(
-            "trading.transaction.factory.DefaultTransactionSender"
-        ) as mock_default_sender,
+        patch("trading.transaction.factory.DefaultTransactionSender") as mock_default_sender,
     ):
         service = TradingService(mock_client)
 

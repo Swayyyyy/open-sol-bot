@@ -2,11 +2,11 @@ import asyncio
 import signal
 
 from gmgnbot.Data import GMGN, OKLine
-from common.log import logger
-from common.prestart import pre_start
-from common.config import settings
+from solbot_common.log import logger
+from solbot_common.prestart import pre_start
+from solbot_common.config import settings
 
-from db.redis import RedisClient
+from solbot_db.redis import RedisClient
 import time
 import datetime
 from gmgnbot.constants import NEW_TOKEN_QUEUE_KEY, NEW_TOKEN_CHANNEL

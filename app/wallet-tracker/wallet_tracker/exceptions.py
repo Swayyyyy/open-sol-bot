@@ -15,7 +15,6 @@ class UnknownTransactionType(Exception):
 
 
 class ZeroChangeAmountError(Exception):
-
     def __init__(self, pre_amount: int, post_amount: int):
         self.pre_amount = pre_amount
         self.post_amount = post_amount

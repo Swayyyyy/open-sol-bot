@@ -5,17 +5,18 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply, Message
 from loguru import logger
+from solbot_common.types.bot_setting import BotSetting as Setting
+from solbot_services.bot_setting import BotSettingService as SettingService
 
 from tg_bot.conversations.setting.render import render
 from tg_bot.conversations.states import SettingStates
-from common.types.bot_setting import BotSetting as Setting
-from services.bot_setting import BotSettingService as SettingService
 from tg_bot.services.user import UserService
 from tg_bot.utils import (
     cleanup_conversation_messages,
     get_setting_from_db,
     invalid_input_and_request_reinput,
 )
+
 from .template import SET_QUICK_SLIPPAGE_PROMPT, SET_SANDWICH_SLIPPAGE_PROMPT
 
 router = Router()
@@ -24,9 +25,7 @@ setting_service = SettingService()
 user_service = UserService()
 
 
-async def setting_menu(
-    callback: CallbackQuery, state: FSMContext, replace: bool = True
-):
+async def setting_menu(callback: CallbackQuery, state: FSMContext, replace: bool = True):
     if callback.message is None:
         logger.warning("No message found in update")
         return
@@ -299,7 +298,7 @@ async def edit_buy_priority_fee(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        "👋 请输入买入优先费(当前 {}):".format(setting.buy_priority_fee),
+        f"👋 请输入买入优先费(当前 {setting.buy_priority_fee}):",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -394,7 +393,7 @@ async def edit_sell_priority_fee(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        "👋 请输入卖出优先费(当前 {}):".format(setting.sell_priority_fee),
+        f"👋 请输入卖出优先费(当前 {setting.sell_priority_fee}):",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )

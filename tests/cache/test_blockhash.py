@@ -4,9 +4,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 import pytest_asyncio
+from solbot_cache.blockhash import BlockhashCache
 from solders.hash import Hash
-
-from cache.blockhash import BlockhashCache
 
 
 @pytest.fixture
@@ -62,9 +61,7 @@ async def test_cache_expiry(cache_instance, mock_client):
     initial_calls = mock_client.get_latest_blockhash.call_count
 
     # 模拟时间流逝，超过有效期
-    with patch(
-        "time.time", return_value=time.time() + BlockhashCache.VALIDITY_DURATION + 1
-    ):
+    with patch("time.time", return_value=time.time() + BlockhashCache.VALIDITY_DURATION + 1):
         await cache_instance.get_blockhash()
         assert mock_client.get_latest_blockhash.call_count > initial_calls
 

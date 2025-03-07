@@ -1,7 +1,7 @@
 from functools import cache
 from typing import Protocol
 
-from common.types import SolAmountChange, TokenAmountChange, TxEvent, TxType
+from solbot_common.types import SolAmountChange, TokenAmountChange, TxEvent, TxType
 
 
 class TransactionParserInterface(Protocol):

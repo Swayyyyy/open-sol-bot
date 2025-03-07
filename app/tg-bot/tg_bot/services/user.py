@@ -1,10 +1,9 @@
+from solbot_common.models.tg_bot.user import User as UserModel
+from solbot_db.session import NEW_ASYNC_SESSION, provide_session
 from solders.keypair import Keypair  # type: ignore
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import and_, delete, select
 from typing_extensions import Self
-
-from common.models.tg_bot.user import User as UserModel
-from db.session import NEW_ASYNC_SESSION, provide_session
 
 
 class UserService:
@@ -115,9 +114,7 @@ class UserService:
         *,
         session: AsyncSession = NEW_ASYNC_SESSION,
     ) -> str:
-        keypair = await self.get_keypair(
-            chat_id, is_default, is_active, session=session
-        )
+        keypair = await self.get_keypair(chat_id, is_default, is_active, session=session)
         return str(keypair.pubkey())
 
     @provide_session

@@ -3,10 +3,10 @@ from datetime import datetime
 from aiogram import types
 from aiogram.enums import ParseMode
 from aiogram.fsm.context import FSMContext
-from cache.token_info import TokenInfoCache
-from common.config import settings
-from common.log import logger
-from services.bot_setting import BotSettingService as SettingService
+from solbot_cache.token_info import TokenInfoCache
+from solbot_common.config import settings
+from solbot_common.log import logger
+from solbot_services.bot_setting import BotSettingService as SettingService
 
 from tg_bot.conversations.swap.render import render as render_swap
 from tg_bot.keyboards.main_menu import main_menu_keyboard
@@ -85,16 +85,14 @@ async def start_asset(token_mint: str, message: types.Message, state: FSMContext
     wallet = await user_service.get_pubkey(chat_id)
     setting = await setting_service.get(chat_id, wallet)
     if setting is None:
-        raise ValueError(
-            "Setting not found, chat_id: {}, wallet: {}".format(chat_id, wallet)
-        )
+        raise ValueError(f"Setting not found, chat_id: {chat_id}, wallet: {wallet}")
 
     token_info = await token_info_cache.get(token_mint)
     if token_info is None:
         logger.info(f"No token info found for {token_mint}")
         await message.answer("❌ 无法查询到该代币信息")
         return
-    logger.info("New Found Token Info: {}".format(token_info))
+    logger.info(f"New Found Token Info: {token_info}")
 
     await state.update_data(setting=setting, token_info=token_info, wallet=wallet)
 

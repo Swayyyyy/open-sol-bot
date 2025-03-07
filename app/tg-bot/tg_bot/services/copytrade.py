@@ -1,13 +1,12 @@
-from typing import List
+import builtins
 
+from solbot_common.cp.monitor_events import MonitorEventProducer
+from solbot_common.models.tg_bot.copytrade import CopyTrade as CopyTradeModel
+from solbot_common.types.copytrade import CopyTrade, CopyTradeSummary
+from solbot_db.redis import RedisClient
+from solbot_db.session import NEW_ASYNC_SESSION, provide_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
-
-from common.cp.monitor_events import MonitorEventProducer
-from common.models.tg_bot.copytrade import CopyTrade as CopyTradeModel
-from db.redis import RedisClient
-from db.session import NEW_ASYNC_SESSION, provide_session
-from common.types.copytrade import CopyTrade, CopyTradeSummary
 
 
 def from_db_model(obj: CopyTradeModel) -> CopyTrade:
@@ -41,9 +40,7 @@ class CopyTradeService:
         self.monitor_event_producer = MonitorEventProducer(redis)
 
     @provide_session
-    async def add(
-        self, copytrade: CopyTrade, *, session: AsyncSession = NEW_ASYNC_SESSION
-    ) -> None:
+    async def add(self, copytrade: CopyTrade, *, session: AsyncSession = NEW_ASYNC_SESSION) -> None:
         """Add a new copytrade to the database"""
         if copytrade.target_wallet is None:
             raise ValueError("target_wallet is required")
@@ -141,9 +138,7 @@ class CopyTradeService:
         )
 
     @provide_session
-    async def list(
-        self, *, session: AsyncSession = NEW_ASYNC_SESSION
-    ) -> list[CopyTradeSummary]:
+    async def list(self, *, session: AsyncSession = NEW_ASYNC_SESSION) -> list[CopyTradeSummary]:
         """Get all copytrades from the database"""
         stmt = select(
             CopyTradeModel.id,
@@ -163,9 +158,7 @@ class CopyTradeService:
         ]
 
     @provide_session
-    async def get_by_id(
-        self, pk: int, *, session: AsyncSession = NEW_ASYNC_SESSION
-    ) -> CopyTrade:
+    async def get_by_id(self, pk: int, *, session: AsyncSession = NEW_ASYNC_SESSION) -> CopyTrade:
         """Get a copytrade by pk from the database"""
         stmt = select(CopyTradeModel).where(CopyTradeModel.id == pk).limit(1)
         result = await session.execute(stmt)
@@ -205,7 +198,7 @@ class CopyTradeService:
     @provide_session
     async def list_by_owner(
         self, chat_id: int, *, session: AsyncSession = NEW_ASYNC_SESSION
-    ) -> List[CopyTradeSummary]:
+    ) -> builtins.list[CopyTradeSummary]:
         stmt = select(
             CopyTradeModel.id,
             CopyTradeModel.target_wallet,

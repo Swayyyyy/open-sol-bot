@@ -2,7 +2,6 @@
 """Client and server classes corresponding to protobuf-defined services."""
 
 import grpc
-import warnings
 
 import yellowstone_grpc.grpc.geyser_pb2 as geyser__pb2
 
@@ -13,23 +12,21 @@ _version_not_supported = False
 try:
     from grpc._utilities import first_version_is_lower
 
-    _version_not_supported = first_version_is_lower(
-        GRPC_VERSION, GRPC_GENERATED_VERSION
-    )
+    _version_not_supported = first_version_is_lower(GRPC_VERSION, GRPC_GENERATED_VERSION)
 except ImportError:
     _version_not_supported = True
 
 if _version_not_supported:
     raise RuntimeError(
         f"The grpc package installed is at version {GRPC_VERSION},"
-        + f" but the generated code in geyser_pb2_grpc.py depends on"
+        + " but the generated code in geyser_pb2_grpc.py depends on"
         + f" grpcio>={GRPC_GENERATED_VERSION}."
         + f" Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}"
         + f" or downgrade your generated code using grpcio-tools<={GRPC_VERSION}."
     )
 
 
-class GeyserStub(object):
+class GeyserStub:
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -82,7 +79,7 @@ class GeyserStub(object):
         )
 
 
-class GeyserServicer(object):
+class GeyserServicer:
     """Missing associated documentation comment in .proto file."""
 
     def Subscribe(self, request_iterator, context):
@@ -166,15 +163,13 @@ def add_GeyserServicer_to_server(servicer, server):
             response_serializer=geyser__pb2.GetVersionResponse.SerializeToString,
         ),
     }
-    generic_handler = grpc.method_handlers_generic_handler(
-        "geyser.Geyser", rpc_method_handlers
-    )
+    generic_handler = grpc.method_handlers_generic_handler("geyser.Geyser", rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
     server.add_registered_method_handlers("geyser.Geyser", rpc_method_handlers)
 
 
 # This class is part of an EXPERIMENTAL API.
-class Geyser(object):
+class Geyser:
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod

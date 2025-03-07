@@ -4,19 +4,19 @@
 """
 
 import asyncio
-from typing import Sequence
+from collections.abc import Sequence
 
 import aioredis
 from _pickle import PicklingError
 from solana.rpc.websocket_api import connect
+from solbot_common.config import settings
+from solbot_common.log import logger
 from solders.errors import SerdeJSONError  # type: ignore
 from solders.pubkey import Pubkey  # type: ignore
 from solders.rpc.config import RpcTransactionLogsFilterMentions  # type: ignore
 from solders.rpc.responses import LogsNotification, SubscriptionResult  # type: ignore
 from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
 
-from common.config import settings
-from common.log import logger
 from wallet_tracker import benchmark
 from wallet_tracker.constants import NEW_TX_SIGNATURE_CHANNEL
 
@@ -45,9 +45,7 @@ class AccountLogMonitor:
         # FIXME: 目前采用的是钱包与钱包建立映射关系，是否可能出现多个钱包跟踪同一个目标钱包的情况。其中一个钱包取消了订阅，是否可能导致其他钱包也无法收到消息
         self.subscription_ids = {}  # 新增：存储钱包地址和订阅ID的映射
         self.websocket = None  # 新增：存储 websocket 连接
-        self.waitting_subscribe_response_wallet = (
-            None  # 新增：存储等待订阅响应的钱包地址
-        )
+        self.waitting_subscribe_response_wallet = None  # 新增：存储等待订阅响应的钱包地址
         self.subscribed_wallets = set()  # 新增：存储已订阅的钱包地址
         self.subscribe_lock = asyncio.Lock()  # 新增：订阅锁
         self.waitting_subscribe_wallet: asyncio.Queue[Pubkey] = (
@@ -82,9 +80,7 @@ class AccountLogMonitor:
             raise ValueError(f"Unexpected subscription result: {message}")
 
         async with self.subscribe_lock:
-            self.subscription_ids[self.waitting_subscribe_response_wallet] = (
-                subscription_id
-            )
+            self.subscription_ids[self.waitting_subscribe_response_wallet] = subscription_id
             old_wallet = self.waitting_subscribe_response_wallet
             self.waitting_subscribe_response_wallet = None
 
@@ -218,9 +214,7 @@ class AccountLogMonitor:
             # Implement exponential backoff for all reconnection attempts
             retry_count += 1
             if retry_count > max_retries:
-                logger.error(
-                    f"Maximum retries ({max_retries}) reached. Stopping monitor."
-                )
+                logger.error(f"Maximum retries ({max_retries}) reached. Stopping monitor.")
                 self.is_running = False
                 break
 

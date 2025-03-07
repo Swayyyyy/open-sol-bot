@@ -1,6 +1,8 @@
 import time
 from contextlib import asynccontextmanager
-from common.log import logger
+
+from solbot_common.log import logger
+
 from wallet_tracker.benchmark.service import benchmark_service
 
 
@@ -35,9 +37,7 @@ async def init(tx_hash: str):
 
 
 async def record_block_time(tx_hash: str, block_time: int):
-    await benchmark_service.add(
-        {"tx_hash": tx_hash, "step": "block_time", "timestamp": block_time}
-    )
+    await benchmark_service.add({"tx_hash": tx_hash, "step": "block_time", "timestamp": block_time})
 
 
 async def show_timeline(tx_hash: str):

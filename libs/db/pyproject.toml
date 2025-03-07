@@ -1,6 +1,6 @@
 [project]
 name = "solbot-db"
-version = "0.1.9"
+version = "0.2.0"
 description = "Database utilities for Solana Trading Bot"
 authors = [{ name = "mkdir700", email = "mkdir700@gmail.com" }]
 dependencies = [
@@ -9,7 +9,7 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.36",
 ]
 requires-python = "==3.10.*"
-license = { text = "MIT" }
+license = { text = "Apache-2.0" }
 
 [build-system]
 requires = ["pdm-backend"]

@@ -11,11 +11,11 @@ from datetime import datetime
 import aioredis
 from aiogram import Bot
 from aiogram.enums import ParseMode
+from solbot_cache.token_info import TokenInfoCache
+from solbot_common.cp.tx_event import TxEventConsumer
+from solbot_common.log import logger
+from solbot_common.types import TxEvent, TxType
 
-from cache.token_info import TokenInfoCache
-from common.cp.tx_event import TxEventConsumer
-from common.log import logger
-from common.types import TxEvent, TxType
 from tg_bot.keyboards.notify_swap import notify_swap_keyboard
 from tg_bot.services.monitor import MonitorService
 from tg_bot.templates import render_notify_swap
@@ -92,16 +92,11 @@ class SmartWalletSwapAlertNotify:
         # 计算持仓变化
         position_change = post_amount - pre_amount
         position_change_formatted = (
-            f"+{position_change:.4f}"
-            if position_change > 0
-            else f"{position_change:.4f}"
+            f"+{position_change:.4f}" if position_change > 0 else f"{position_change:.4f}"
         )
 
         # 计算变化百分比（仅针对加仓和减仓）
-        if (
-            tx_event.tx_type in [TxType.ADD_POSITION, TxType.REDUCE_POSITION]
-            and pre_amount != 0
-        ):
+        if tx_event.tx_type in [TxType.ADD_POSITION, TxType.REDUCE_POSITION] and pre_amount != 0:
             change_percentage = (position_change / pre_amount) * 100
             percentage_str = f"({change_percentage:+.2f}%)"
             position_change_formatted = f"{position_change_formatted} {percentage_str}"
@@ -115,9 +110,7 @@ class SmartWalletSwapAlertNotify:
         # 交易类型中文映射
         tx_type_cn = _data.get(tx_event.tx_type, str(tx_event.tx_type))
 
-        tx_time = datetime.fromtimestamp(tx_event.timestamp).strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
+        tx_time = datetime.fromtimestamp(tx_event.timestamp).strftime("%Y-%m-%d %H:%M:%S")
 
         token_info = await TokenInfoCache().get(tx_event.mint)
         if token_info is None:
@@ -143,13 +136,9 @@ class SmartWalletSwapAlertNotify:
             signature=tx_event.signature,
         )
 
-    async def send_notification(
-        self, tx_event: TxEvent, swap_message: SwapMessage
-    ) -> None:
+    async def send_notification(self, tx_event: TxEvent, swap_message: SwapMessage) -> None:
         """发送通知到所有配置的聊天"""
-        monitors = await self.monitor_service.get_active_by_target_wallet(
-            str(tx_event.who)
-        )
+        monitors = await self.monitor_service.get_active_by_target_wallet(str(tx_event.who))
 
         async def _f(_monitor):
             copy_message = copy.deepcopy(swap_message)
@@ -209,7 +198,7 @@ class SmartWalletSwapAlertNotify:
 #     from aiogram.filters import Command
 #     from aiogram.types import Message
 #
-#     from common.config import settings
+#     from solbot_common.config import settings
 #
 #     # 用于控制服务运行状态
 #     is_running = True

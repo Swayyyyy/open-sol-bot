@@ -2,10 +2,10 @@ from datetime import datetime
 
 from aiogram import types
 from aiogram.enums import ParseMode
+from solbot_cache.wallet import WalletCache
+from solbot_common.config import settings
+from solbot_common.utils.shyft import ShyftAPI
 
-from cache.wallet import WalletCache
-from common.config import settings
-from common.utils.shyft import ShyftAPI
 from tg_bot.keyboards.main_menu import main_menu_keyboard
 from tg_bot.services.activation import ActivationCodeService
 from tg_bot.services.user import UserService
@@ -40,13 +40,9 @@ async def render(update: types.Message | types.CallbackQuery) -> dict:
 
     expiration_datetime = None
     if settings.tg_bot.mode == "private":
-        remaining_time = await activation_code_service.get_user_expired_timestamp(
-            user.id
-        )
+        remaining_time = await activation_code_service.get_user_expired_timestamp(user.id)
         # -> 年-月-日 时:分:秒
-        expiration_datetime = datetime.fromtimestamp(remaining_time).strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
+        expiration_datetime = datetime.fromtimestamp(remaining_time).strftime("%Y-%m-%d %H:%M:%S")
 
     return {
         "text": render_start_message(

@@ -1,9 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-def confirm_keyboard(
-    confirm_callback: str, cancel_callback: str
-) -> InlineKeyboardMarkup:
+def confirm_keyboard(confirm_callback: str, cancel_callback: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [

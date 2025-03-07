@@ -5,15 +5,15 @@ from typing import cast
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply, Message
-from cache import TokenInfoCache
-from common.constants import SOL_DECIMAL, WSOL
-from common.cp.swap_event import SwapEventProducer
-from common.types.bot_setting import BotSetting as Setting
-from common.types.swap import SwapEvent
-from common.utils import calculate_auto_slippage
-from db.redis import RedisClient
 from loguru import logger
-from services.bot_setting import BotSettingService as SettingService
+from solbot_cache import TokenInfoCache
+from solbot_common.constants import SOL_DECIMAL, WSOL
+from solbot_common.cp.swap_event import SwapEventProducer
+from solbot_common.types.bot_setting import BotSetting as Setting
+from solbot_common.types.swap import SwapEvent
+from solbot_common.utils import calculate_auto_slippage
+from solbot_db.redis import RedisClient
+from solbot_services.bot_setting import BotSettingService as SettingService
 
 from tg_bot.conversations.setting.menu import setting_menu
 from tg_bot.conversations.states import SwapStates
@@ -162,6 +162,9 @@ async def toggle_quick_mode(callback: CallbackQuery, state: FSMContext):
 
     data = await state.get_data()
     text = callback.message.text
+    if text is None:
+        raise ValueError("Text not found in message")
+
     token_mint = extract_token_mint_from_swap_menu(text)
     if token_mint is None:
         raise ValueError("Token mint not found in message text")
@@ -198,6 +201,9 @@ async def toggle_sandwich_mode(callback: CallbackQuery, state: FSMContext):
 
     data = await state.get_data()
     text = callback.message.text
+    if text is None:
+        raise ValueError("Text not found in message")
+
     token_mint = extract_token_mint_from_swap_menu(text)
     if token_mint is None:
         raise ValueError("Token mint not found in message text")
@@ -702,7 +708,7 @@ async def handle_sellx(message: Message, state: FSMContext):
         sell_pct = float(message.text.strip())
     except ValueError:
         await invalid_input_and_request_reinput(
-            text="❌ 无效的买入金额，请重新输入：",
+            text="❌ 请输入数字：",
             last_message=message,
             state=state,
         )

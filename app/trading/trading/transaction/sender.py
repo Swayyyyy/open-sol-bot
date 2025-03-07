@@ -1,12 +1,11 @@
 import base64
-from typing import Optional
 
-from common.config import settings
-from common.log import logger
-from common.utils.gmgn import GmgnAPI
-from common.utils.jito import JitoClient
 from solana.rpc.async_api import AsyncClient
 from solana.rpc.types import TxOpts
+from solbot_common.config import settings
+from solbot_common.log import logger
+from solbot_common.utils.gmgn import GmgnAPI
+from solbot_common.utils.jito import JitoClient
 from solders.signature import Signature  # type: ignore
 from solders.transaction import VersionedTransaction  # type: ignore
 
@@ -23,7 +22,7 @@ class DefaultTransactionSender(TransactionSender):
     async def send_transaction(
         self,
         transaction: VersionedTransaction,
-        opts: Optional[TxOpts] = None,
+        opts: TxOpts | None = None,
         **kwargs,
     ) -> Signature:
         if opts is None:
@@ -51,7 +50,7 @@ class JitoTransactionSender(TransactionSender):
     async def send_transaction(
         self,
         transaction: VersionedTransaction,
-        opts: Optional[TxOpts] = None,
+        opts: TxOpts | None = None,
         **kwargs,
     ) -> Signature:
         if opts is None:

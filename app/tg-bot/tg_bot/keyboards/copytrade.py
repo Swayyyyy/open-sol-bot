@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from solbot_common.types.copytrade import CopyTrade, CopyTradeSummary
 
-from common.types.copytrade import CopyTrade, CopyTradeSummary
 from tg_bot.utils import short_text
 
 
@@ -21,9 +21,7 @@ def copytrade_keyboard_menu(
         items.append(
             [
                 InlineKeyboardButton(
-                    text="{} 跟单地址：{}".format(
-                        "🟢" if item.active else "🔴", show_name
-                    ),
+                    text="{} 跟单地址：{}".format("🟢" if item.active else "🔴", show_name),
                     callback_data=f"copytrade_{item.pk}",
                 )
             ]
@@ -32,9 +30,7 @@ def copytrade_keyboard_menu(
     if len(items) != 0:
         items.append(
             [
-                InlineKeyboardButton(
-                    text="停止全部跟单", callback_data="stop_all_copytrade"
-                ),
+                InlineKeyboardButton(text="停止全部跟单", callback_data="stop_all_copytrade"),
             ]
         )
 
@@ -107,9 +103,7 @@ def create_copytrade_keyboard(udata: CopyTrade) -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text="优先费: {} SOL".format(
-                        udata.priority,
-                    ),
+                    text=f"优先费: {udata.priority} SOL",
                     callback_data="set_priority",
                 ),
                 InlineKeyboardButton(
@@ -137,9 +131,7 @@ def create_copytrade_keyboard(udata: CopyTrade) -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(text="⬅️ 取消", callback_data="back_to_copytrade"),
-                InlineKeyboardButton(
-                    text="✅ 确认创建", callback_data="submit_copytrade"
-                ),
+                InlineKeyboardButton(text="✅ 确认创建", callback_data="submit_copytrade"),
             ],
         ],
     )
@@ -199,9 +191,7 @@ def edit_copytrade_keyboard(udata: CopyTrade) -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text="优先费: {} SOL".format(
-                        udata.priority,
-                    ),
+                    text=f"优先费: {udata.priority} SOL",
                     callback_data="set_priority",
                 ),
                 InlineKeyboardButton(

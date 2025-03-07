@@ -1,4 +1,3 @@
-from typing import List, Optional
 from google.protobuf.message import Message as _Message
 
 class MessageHeader(_Message):
@@ -18,14 +17,14 @@ class CompiledInstruction(_Message):
 
 class Message(_Message):
     header: MessageHeader
-    account_keys: List[bytes]
+    account_keys: list[bytes]
     recent_blockhash: bytes
-    instructions: List[CompiledInstruction]
+    instructions: list[CompiledInstruction]
     versioned: bool
-    address_table_lookups: List[MessageAddressTableLookup]
+    address_table_lookups: list[MessageAddressTableLookup]
 
 class Transaction(_Message):
-    signatures: List[bytes]
+    signatures: list[bytes]
     message: Message
 
 class UiTokenAmount(_Message):
@@ -49,32 +48,32 @@ class InnerInstruction(_Message):
     program_id_index: int
     accounts: bytes
     data: bytes
-    stack_height: Optional[int]
+    stack_height: int | None
 
 class InnerInstructions(_Message):
     index: int
-    instructions: List[InnerInstruction]
+    instructions: list[InnerInstruction]
 
 class TransactionError(_Message):
     err: bytes
 
 class TransactionStatusMeta(_Message):
-    err: Optional[TransactionError]
+    err: TransactionError | None
     fee: int
-    pre_balances: List[int]
-    post_balances: List[int]
-    inner_instructions: List[InnerInstructions]
+    pre_balances: list[int]
+    post_balances: list[int]
+    inner_instructions: list[InnerInstructions]
     inner_instructions_none: bool
-    log_messages: List[str]
+    log_messages: list[str]
     log_messages_none: bool
-    pre_token_balances: List[TokenBalance]
-    post_token_balances: List[TokenBalance]
-    rewards: List["Reward"]
-    loaded_writable_addresses: List[bytes]
-    loaded_readonly_addresses: List[bytes]
-    return_data: Optional[ReturnData]
+    pre_token_balances: list[TokenBalance]
+    post_token_balances: list[TokenBalance]
+    rewards: list[Reward]
+    loaded_writable_addresses: list[bytes]
+    loaded_readonly_addresses: list[bytes]
+    return_data: ReturnData | None
     return_data_none: bool
-    compute_units_consumed: Optional[int]
+    compute_units_consumed: int | None
 
 class ConfirmedTransaction(_Message):
     transaction: Transaction
@@ -88,7 +87,7 @@ class Reward(_Message):
     commission: str
 
 class Rewards(_Message):
-    rewards: List[Reward]
+    rewards: list[Reward]
     num_partitions: NumPartitions
 
 class UnixTimestamp(_Message):
@@ -104,8 +103,8 @@ class ConfirmedBlock(_Message):
     previous_blockhash: str
     blockhash: str
     parent_slot: int
-    transactions: List[ConfirmedTransaction]
-    rewards: List[Reward]
+    transactions: list[ConfirmedTransaction]
+    rewards: list[Reward]
     block_time: UnixTimestamp
     block_height: BlockHeight
     num_partitions: NumPartitions

@@ -1,4 +1,26 @@
 services:
+  cache-preloader:
+    build:
+      context: .
+      dockerfile: app/cache-preloader/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ./config.toml:/app/config.toml:ro
+      - ./app/cache-preloader/cache_preloader:/app/cache_preloader:ro
+      - ./logs/cache-preloader:/app/logs
+    environment:
+      - PYTHONPATH=/app/libs:/app
+      - DB__MYSQL_URL=mysql+pymysql://root:root@mysql:3306/solana_trade_bot
+      - DB__REDIS_URL=redis://redis:6379/0
+    command: ["cache_preloader.main"]
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - backend
+
   gmgn-tracker:
       build:
         context: .
@@ -26,6 +48,8 @@ services:
       - ./logs/wallet-tracker:/app/logs
     environment:
       - PYTHONPATH=/app/libs:/app
+      - DB__MYSQL_URL=mysql+pymysql://root:root@mysql:3306/solana_trade_bot
+      - DB__REDIS_URL=redis://redis:6379/0
     command: ["wallet_tracker.main"]
     depends_on:
       mysql:
@@ -46,6 +70,8 @@ services:
       - ./logs/trading:/app/logs
     environment:
       - PYTHONPATH=/app/libs:/app
+      - DB__MYSQL_URL=mysql+pymysql://root:root@mysql:3306/solana_trade_bot
+      - DB__REDIS_URL=redis://redis:6379/0
     command: ["trading.main"]
     depends_on:
       mysql:
@@ -66,6 +92,8 @@ services:
       - ./logs/tg-bot:/app/logs
     environment:
       - PYTHONPATH=/app/libs:/app
+      - DB__MYSQL_URL=mysql+pymysql://root:root@mysql:3306/solana_trade_bot
+      - DB__REDIS_URL=redis://redis:6379/0
     command: ["tg_bot.main"]
     depends_on:
       mysql:
@@ -89,6 +117,8 @@ services:
   #     - ./logs/price-monitor:/app/logs
   #   environment:
   #     - DISPLAY=:99
+  #     - DB__MYSQL_URL=mysql+pymysql://root:root@mysql:3306/solana_trade_bot
+  #     - DB__REDIS_URL=redis://redis:6379/0
   #   shm_size: 2gb
   #   cap_add:
   #     - SYS_ADMIN

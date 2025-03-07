@@ -1,6 +1,5 @@
 from base64 import b64decode
 from enum import IntEnum
-from typing import Dict, List, Optional, Union
 
 from base58 import b58decode, b58encode
 from pydantic import BaseModel, Field
@@ -84,14 +83,12 @@ class CommitmentLevel(IntEnum):
 
 class SubscribeRequestFilterAccountsFilterMemcmp(BaseModel):
     offset: int
-    data: Union[bytes, str] = Field(default=b"")
+    data: bytes | str = Field(default=b"")
     data_type: str = Field(default="bytes")  # can be "bytes", "base58", or "base64"
 
     def get_bytes(self) -> bytes:
         if self.data_type == "bytes":
-            return (
-                self.data if isinstance(self.data, bytes) else bytes(self.data, "utf-8")
-            )
+            return self.data if isinstance(self.data, bytes) else bytes(self.data, "utf-8")
         elif self.data_type == "base58":
             return b58decode(self.data)
         elif self.data_type == "base64":
@@ -117,10 +114,10 @@ class SubscribeRequestFilterAccountsFilterMemcmp(BaseModel):
 
 
 class SubscribeRequestFilterAccountsFilterLamports(BaseModel):
-    eq: Optional[int] = None
-    ne: Optional[int] = None
-    lt: Optional[int] = None
-    gt: Optional[int] = None
+    eq: int | None = None
+    ne: int | None = None
+    lt: int | None = None
+    gt: int | None = None
 
     @classmethod
     def from_proto(
@@ -147,10 +144,10 @@ class SubscribeRequestFilterAccountsFilterLamports(BaseModel):
 
 
 class SubscribeRequestFilterAccountsFilter(BaseModel):
-    memcmp: Optional[SubscribeRequestFilterAccountsFilterMemcmp] = None
-    datasize: Optional[int] = None
-    token_account_state: Optional[bool] = None
-    lamports: Optional[SubscribeRequestFilterAccountsFilterLamports] = None
+    memcmp: SubscribeRequestFilterAccountsFilterMemcmp | None = None
+    datasize: int | None = None
+    token_account_state: bool | None = None
+    lamports: SubscribeRequestFilterAccountsFilterLamports | None = None
 
     @classmethod
     def from_proto(
@@ -158,24 +155,18 @@ class SubscribeRequestFilterAccountsFilter(BaseModel):
     ) -> "SubscribeRequestFilterAccountsFilter":
         return cls(
             memcmp=(
-                SubscribeRequestFilterAccountsFilterMemcmp.from_proto(
-                    proto_filter.memcmp
-                )
+                SubscribeRequestFilterAccountsFilterMemcmp.from_proto(proto_filter.memcmp)
                 if proto_filter.memcmp is not None
                 else None
             ),
-            datasize=(
-                proto_filter.datasize if proto_filter.HasField("datasize") else None
-            ),
+            datasize=(proto_filter.datasize if proto_filter.HasField("datasize") else None),
             token_account_state=(
                 proto_filter.token_account_state
                 if proto_filter.HasField("token_account_state")
                 else None
             ),
             lamports=(
-                SubscribeRequestFilterAccountsFilterLamports.from_proto(
-                    proto_filter.lamports
-                )
+                SubscribeRequestFilterAccountsFilterLamports.from_proto(proto_filter.lamports)
                 if proto_filter.lamports is not None
                 else None
             ),
@@ -195,21 +186,18 @@ class SubscribeRequestFilterAccountsFilter(BaseModel):
 
 
 class SubscribeRequestFilterAccounts(BaseModel):
-    account: List[str] = Field(default_factory=list)
-    owner: List[str] = Field(default_factory=list)
-    filters: List[SubscribeRequestFilterAccountsFilter] = Field(default_factory=list)
-    nonempty_txn_signature: Optional[bool] = None
+    account: list[str] = Field(default_factory=list)
+    owner: list[str] = Field(default_factory=list)
+    filters: list[SubscribeRequestFilterAccountsFilter] = Field(default_factory=list)
+    nonempty_txn_signature: bool | None = None
 
     @classmethod
-    def from_proto(
-        cls, proto_accounts: "ProtoRequestAccounts"
-    ) -> "SubscribeRequestFilterAccounts":
+    def from_proto(cls, proto_accounts: "ProtoRequestAccounts") -> "SubscribeRequestFilterAccounts":
         return cls(
             account=list(proto_accounts.account),
             owner=list(proto_accounts.owner),
             filters=[
-                SubscribeRequestFilterAccountsFilter.from_proto(f)
-                for f in proto_accounts.filters
+                SubscribeRequestFilterAccountsFilter.from_proto(f) for f in proto_accounts.filters
             ],
             nonempty_txn_signature=(
                 proto_accounts.nonempty_txn_signature
@@ -229,12 +217,10 @@ class SubscribeRequestFilterAccounts(BaseModel):
 
 
 class SubscribeRequestFilterSlots(BaseModel):
-    filter_by_commitment: Optional[bool] = None
+    filter_by_commitment: bool | None = None
 
     @classmethod
-    def from_proto(
-        cls, proto_slots: "ProtoRequestSlots"
-    ) -> "SubscribeRequestFilterSlots":
+    def from_proto(cls, proto_slots: "ProtoRequestSlots") -> "SubscribeRequestFilterSlots":
         return cls(
             filter_by_commitment=(
                 proto_slots.filter_by_commitment
@@ -251,12 +237,12 @@ class SubscribeRequestFilterSlots(BaseModel):
 
 
 class SubscribeRequestFilterTransactions(BaseModel):
-    vote: Optional[bool] = None
-    failed: Optional[bool] = None
-    signature: Optional[str] = None
-    account_include: List[str] = Field(default_factory=list)
-    account_exclude: List[str] = Field(default_factory=list)
-    account_required: List[str] = Field(default_factory=list)
+    vote: bool | None = None
+    failed: bool | None = None
+    signature: str | None = None
+    account_include: list[str] = Field(default_factory=list)
+    account_exclude: list[str] = Field(default_factory=list)
+    account_required: list[str] = Field(default_factory=list)
 
     @classmethod
     def from_proto(
@@ -265,9 +251,7 @@ class SubscribeRequestFilterTransactions(BaseModel):
         return cls(
             vote=proto_txns.vote if proto_txns.HasField("vote") else None,
             failed=proto_txns.failed if proto_txns.HasField("failed") else None,
-            signature=(
-                proto_txns.signature if proto_txns.HasField("signature") else None
-            ),
+            signature=(proto_txns.signature if proto_txns.HasField("signature") else None),
             account_include=list(proto_txns.account_include),
             account_exclude=list(proto_txns.account_exclude),
             account_required=list(proto_txns.account_required),
@@ -288,15 +272,13 @@ class SubscribeRequestFilterTransactions(BaseModel):
 
 
 class SubscribeRequestFilterBlocks(BaseModel):
-    account_include: List[str] = Field(default_factory=list)
-    include_transactions: Optional[bool] = None
-    include_accounts: Optional[bool] = None
-    include_entries: Optional[bool] = None
+    account_include: list[str] = Field(default_factory=list)
+    include_transactions: bool | None = None
+    include_accounts: bool | None = None
+    include_entries: bool | None = None
 
     @classmethod
-    def from_proto(
-        cls, proto_blocks: "ProtoRequestBlocks"
-    ) -> "SubscribeRequestFilterBlocks":
+    def from_proto(cls, proto_blocks: "ProtoRequestBlocks") -> "SubscribeRequestFilterBlocks":
         return cls(
             account_include=list(proto_blocks.account_include),
             include_transactions=(
@@ -305,14 +287,10 @@ class SubscribeRequestFilterBlocks(BaseModel):
                 else None
             ),
             include_accounts=(
-                proto_blocks.include_accounts
-                if proto_blocks.HasField("include_accounts")
-                else None
+                proto_blocks.include_accounts if proto_blocks.HasField("include_accounts") else None
             ),
             include_entries=(
-                proto_blocks.include_entries
-                if proto_blocks.HasField("include_entries")
-                else None
+                proto_blocks.include_entries if proto_blocks.HasField("include_entries") else None
             ),
         )
 
@@ -365,24 +343,16 @@ class SubscribeRequestPing(BaseModel):
 
 
 class SubscribeRequest(BaseModel):
-    accounts: Dict[str, SubscribeRequestFilterAccounts] = Field(default_factory=dict)
-    slots: Dict[str, SubscribeRequestFilterSlots] = Field(default_factory=dict)
-    transactions: Dict[str, SubscribeRequestFilterTransactions] = Field(
-        default_factory=dict
-    )
-    transactions_status: Dict[str, SubscribeRequestFilterTransactions] = Field(
-        default_factory=dict
-    )
-    blocks: Dict[str, SubscribeRequestFilterBlocks] = Field(default_factory=dict)
-    blocks_meta: Dict[str, SubscribeRequestFilterBlocksMeta] = Field(
-        default_factory=dict
-    )
-    entry: Dict[str, SubscribeRequestFilterEntry] = Field(default_factory=dict)
-    commitment: Optional[CommitmentLevel] = None
-    accounts_data_slice: List[SubscribeRequestAccountsDataSlice] = Field(
-        default_factory=list
-    )
-    ping: Optional[SubscribeRequestPing] = None
+    accounts: dict[str, SubscribeRequestFilterAccounts] = Field(default_factory=dict)
+    slots: dict[str, SubscribeRequestFilterSlots] = Field(default_factory=dict)
+    transactions: dict[str, SubscribeRequestFilterTransactions] = Field(default_factory=dict)
+    transactions_status: dict[str, SubscribeRequestFilterTransactions] = Field(default_factory=dict)
+    blocks: dict[str, SubscribeRequestFilterBlocks] = Field(default_factory=dict)
+    blocks_meta: dict[str, SubscribeRequestFilterBlocksMeta] = Field(default_factory=dict)
+    entry: dict[str, SubscribeRequestFilterEntry] = Field(default_factory=dict)
+    commitment: CommitmentLevel | None = None
+    accounts_data_slice: list[SubscribeRequestAccountsDataSlice] = Field(default_factory=list)
+    ping: SubscribeRequestPing | None = None
 
     @classmethod
     def from_proto(cls, proto_request: "ProtoRequest") -> "SubscribeRequest":
@@ -392,8 +362,7 @@ class SubscribeRequest(BaseModel):
                 for k, v in proto_request.accounts.items()
             },
             slots={
-                k: SubscribeRequestFilterSlots.from_proto(v)
-                for k, v in proto_request.slots.items()
+                k: SubscribeRequestFilterSlots.from_proto(v) for k, v in proto_request.slots.items()
             },
             transactions={
                 k: SubscribeRequestFilterTransactions.from_proto(v)
@@ -408,21 +377,16 @@ class SubscribeRequest(BaseModel):
                 for k, v in proto_request.blocks.items()
             },
             blocks_meta={
-                k: SubscribeRequestFilterBlocksMeta()
-                for k, v in proto_request.blocks_meta.items()
+                k: SubscribeRequestFilterBlocksMeta() for k, v in proto_request.blocks_meta.items()
             },
-            entry={
-                k: SubscribeRequestFilterEntry() for k, v in proto_request.entry.items()
-            },
+            entry={k: SubscribeRequestFilterEntry() for k, v in proto_request.entry.items()},
             commitment=(
                 CommitmentLevel(proto_request.commitment)
                 if proto_request.HasField("commitment")
                 else None
             ),
             accounts_data_slice=[
-                SubscribeRequestAccountsDataSlice(
-                    offset=slice.offset, length=slice.length
-                )
+                SubscribeRequestAccountsDataSlice(offset=slice.offset, length=slice.length)
                 for slice in proto_request.accounts_data_slice
             ],
             ping=(
@@ -478,7 +442,7 @@ class SubscribeUpdateAccountInfo(BaseModel):
     rent_epoch: int
     data: bytes
     write_version: int
-    txn_signature: Optional[str] = None
+    txn_signature: str | None = None
 
     @field_validator("pubkey", "owner", "txn_signature", mode="before")
     def pubkey_from_str(cls, v: bytes | None) -> str | None:
@@ -487,9 +451,7 @@ class SubscribeUpdateAccountInfo(BaseModel):
         return b58encode(v).decode("utf-8")
 
     @classmethod
-    def from_proto(
-        cls, proto_account: "ProtoAccountInfo"
-    ) -> "SubscribeUpdateAccountInfo":
+    def from_proto(cls, proto_account: "ProtoAccountInfo") -> "SubscribeUpdateAccountInfo":
         return cls(
             pubkey=proto_account.pubkey,
             lamports=proto_account.lamports,
@@ -538,9 +500,9 @@ class SubscribeUpdateAccount(BaseModel):
 
 class SubscribeUpdateSlot(BaseModel):
     slot: int
-    parent: Optional[int] = None
+    parent: int | None = None
     status: CommitmentLevel = CommitmentLevel.PROCESSED
-    dead_error: Optional[str] = None
+    dead_error: str | None = None
 
     @classmethod
     def from_proto(cls, proto_slot: "ProtoSlot") -> "SubscribeUpdateSlot":
@@ -548,9 +510,7 @@ class SubscribeUpdateSlot(BaseModel):
             slot=proto_slot.slot,
             parent=proto_slot.parent if proto_slot.HasField("parent") else None,
             status=CommitmentLevel(proto_slot.status),
-            dead_error=(
-                proto_slot.dead_error if proto_slot.HasField("dead_error") else None
-            ),
+            dead_error=(proto_slot.dead_error if proto_slot.HasField("dead_error") else None),
         )
 
     def to_proto(self) -> "ProtoSlot":
@@ -578,9 +538,7 @@ class SubscribeUpdateTransactionInfo(BaseModel):
         return b58encode(v).decode("utf-8")
 
     @classmethod
-    def from_proto(
-        cls, proto_tx: "ProtoTransactionInfo"
-    ) -> "SubscribeUpdateTransactionInfo":
+    def from_proto(cls, proto_tx: "ProtoTransactionInfo") -> "SubscribeUpdateTransactionInfo":
         return cls(
             signature=proto_tx.signature,
             is_vote=proto_tx.is_vote,
@@ -604,9 +562,7 @@ class SubscribeUpdateTransaction(BaseModel):
     slot: int
 
     @classmethod
-    def from_proto(
-        cls, proto_tx: "ProtoUpdateTransaction"
-    ) -> "SubscribeUpdateTransaction":
+    def from_proto(cls, proto_tx: "ProtoUpdateTransaction") -> "SubscribeUpdateTransaction":
         return cls(
             transaction=SubscribeUpdateTransactionInfo.from_proto(proto_tx.transaction),
             slot=proto_tx.slot,
@@ -633,9 +589,7 @@ class SubscribeUpdateTransactionStatus(BaseModel):
         return b58encode(v).decode("utf-8")
 
     @classmethod
-    def from_proto(
-        cls, proto_tx: "ProtoTransactionStatus"
-    ) -> "SubscribeUpdateTransactionStatus":
+    def from_proto(cls, proto_tx: "ProtoTransactionStatus") -> "SubscribeUpdateTransactionStatus":
         return cls(
             slot=proto_tx.slot,
             signature=proto_tx.signature,
@@ -699,11 +653,11 @@ class SubscribeUpdateBlock(BaseModel):
     parent_slot: int
     parent_blockhash: str
     executed_transaction_count: int
-    transactions: List[SubscribeUpdateTransactionInfo] = Field(default_factory=list)
+    transactions: list[SubscribeUpdateTransactionInfo] = Field(default_factory=list)
     updated_account_count: int = 0
-    accounts: List[SubscribeUpdateAccountInfo] = Field(default_factory=list)
+    accounts: list[SubscribeUpdateAccountInfo] = Field(default_factory=list)
     entries_count: int = 0
-    entries: List[SubscribeUpdateEntry] = Field(default_factory=list)
+    entries: list[SubscribeUpdateEntry] = Field(default_factory=list)
 
     @classmethod
     def from_proto(cls, proto_block: "ProtoBlock") -> "SubscribeUpdateBlock":
@@ -717,18 +671,14 @@ class SubscribeUpdateBlock(BaseModel):
             parent_blockhash=proto_block.parent_blockhash,
             executed_transaction_count=proto_block.executed_transaction_count,
             transactions=[
-                SubscribeUpdateTransactionInfo.from_proto(tx)
-                for tx in proto_block.transactions
+                SubscribeUpdateTransactionInfo.from_proto(tx) for tx in proto_block.transactions
             ],
             updated_account_count=proto_block.updated_account_count,
             accounts=[
-                SubscribeUpdateAccountInfo.from_proto(account)
-                for account in proto_block.accounts
+                SubscribeUpdateAccountInfo.from_proto(account) for account in proto_block.accounts
             ],
             entries_count=proto_block.entries_count,
-            entries=[
-                SubscribeUpdateEntry.from_proto(entry) for entry in proto_block.entries
-            ],
+            entries=[SubscribeUpdateEntry.from_proto(entry) for entry in proto_block.entries],
         )
 
     def to_proto(self) -> "ProtoBlock":
@@ -815,16 +765,16 @@ class SubscribeUpdatePong(BaseModel):
 
 
 class SubscribeUpdate(BaseModel):
-    filters: List[str] = Field(default_factory=list)
-    account: Optional[SubscribeUpdateAccount] = None
-    slot: Optional[SubscribeUpdateSlot] = None
-    transaction: Optional[SubscribeUpdateTransaction] = None
-    transaction_status: Optional[SubscribeUpdateTransactionStatus] = None
-    block: Optional[SubscribeUpdateBlock] = None
-    block_meta: Optional[SubscribeUpdateBlockMeta] = None
-    entry: Optional[SubscribeUpdateEntry] = None
-    ping: Optional[SubscribeUpdatePing] = None
-    pong: Optional[SubscribeUpdatePong] = None
+    filters: list[str] = Field(default_factory=list)
+    account: SubscribeUpdateAccount | None = None
+    slot: SubscribeUpdateSlot | None = None
+    transaction: SubscribeUpdateTransaction | None = None
+    transaction_status: SubscribeUpdateTransactionStatus | None = None
+    block: SubscribeUpdateBlock | None = None
+    block_meta: SubscribeUpdateBlockMeta | None = None
+    entry: SubscribeUpdateEntry | None = None
+    ping: SubscribeUpdatePing | None = None
+    pong: SubscribeUpdatePong | None = None
 
     @classmethod
     def from_proto(cls, proto_update: "ProtoUpdate") -> "SubscribeUpdate":
@@ -842,14 +792,11 @@ class SubscribeUpdate(BaseModel):
             ),
             transaction=(
                 SubscribeUpdateTransaction.from_proto(proto_update.transaction)
-                if proto_update.HasField("transaction")
-                and proto_update.transaction is not None
+                if proto_update.HasField("transaction") and proto_update.transaction is not None
                 else None
             ),
             transaction_status=(
-                SubscribeUpdateTransactionStatus.from_proto(
-                    proto_update.transaction_status
-                )
+                SubscribeUpdateTransactionStatus.from_proto(proto_update.transaction_status)
                 if proto_update.HasField("transaction_status")
                 and proto_update.transaction_status is not None
                 else None
@@ -861,8 +808,7 @@ class SubscribeUpdate(BaseModel):
             ),
             block_meta=(
                 SubscribeUpdateBlockMeta.from_proto(proto_update.block_meta)
-                if proto_update.HasField("block_meta")
-                and proto_update.block_meta is not None
+                if proto_update.HasField("block_meta") and proto_update.block_meta is not None
                 else None
             ),
             entry=(
@@ -933,7 +879,7 @@ class PongResponse(BaseModel):
 
 
 class GetLatestBlockhashRequest(BaseModel):
-    commitment: Optional[CommitmentLevel] = None
+    commitment: CommitmentLevel | None = None
 
     @classmethod
     def from_proto(
@@ -971,12 +917,10 @@ class GetLatestBlockhashResponse(BaseModel):
 
 
 class GetBlockHeightRequest(BaseModel):
-    commitment: Optional[CommitmentLevel] = None
+    commitment: CommitmentLevel | None = None
 
     @classmethod
-    def from_proto(
-        cls, proto_request: "ProtoGetBlockHeightRequest"
-    ) -> "GetBlockHeightRequest":
+    def from_proto(cls, proto_request: "ProtoGetBlockHeightRequest") -> "GetBlockHeightRequest":
         return cls(commitment=CommitmentLevel(proto_request.commitment))
 
     def to_proto(self) -> "ProtoGetBlockHeightRequest":
@@ -989,9 +933,7 @@ class GetBlockHeightResponse(BaseModel):
     block_height: int
 
     @classmethod
-    def from_proto(
-        cls, proto_response: "ProtoGetBlockHeightResponse"
-    ) -> "GetBlockHeightResponse":
+    def from_proto(cls, proto_response: "ProtoGetBlockHeightResponse") -> "GetBlockHeightResponse":
         return cls(block_height=proto_response.block_height)
 
     def to_proto(self) -> "ProtoGetBlockHeightResponse":
@@ -1001,7 +943,7 @@ class GetBlockHeightResponse(BaseModel):
 
 
 class GetSlotRequest(BaseModel):
-    commitment: Optional[CommitmentLevel] = None
+    commitment: CommitmentLevel | None = None
 
     @classmethod
     def from_proto(cls, proto_request: "ProtoGetSlotRequest") -> "GetSlotRequest":
@@ -1040,9 +982,7 @@ class GetVersionResponse(BaseModel):
     version: str
 
     @classmethod
-    def from_proto(
-        cls, proto_response: "ProtoGetVersionResponse"
-    ) -> "GetVersionResponse":
+    def from_proto(cls, proto_response: "ProtoGetVersionResponse") -> "GetVersionResponse":
         return cls(version=proto_response.version)
 
     def to_proto(self) -> "ProtoGetVersionResponse":
@@ -1053,12 +993,10 @@ class GetVersionResponse(BaseModel):
 
 class IsBlockhashValidRequest(BaseModel):
     blockhash: str
-    commitment: Optional[CommitmentLevel] = None
+    commitment: CommitmentLevel | None = None
 
     @classmethod
-    def from_proto(
-        cls, proto_request: "ProtoIsBlockhashValidRequest"
-    ) -> "IsBlockhashValidRequest":
+    def from_proto(cls, proto_request: "ProtoIsBlockhashValidRequest") -> "IsBlockhashValidRequest":
         return cls(
             blockhash=proto_request.blockhash,
             commitment=CommitmentLevel(proto_request.commitment),
@@ -1130,9 +1068,7 @@ class MessageAddressTableLookup(BaseModel):
         return b58encode(v).decode("utf-8")
 
     @classmethod
-    def from_proto(
-        cls, lookup: "ProtoMessageAddressTableLookup"
-    ) -> "MessageAddressTableLookup":
+    def from_proto(cls, lookup: "ProtoMessageAddressTableLookup") -> "MessageAddressTableLookup":
         return cls(
             account_key=lookup.account_key,  # type: ignore
             writable_indexes=lookup.writable_indexes,
@@ -1149,11 +1085,11 @@ class MessageAddressTableLookup(BaseModel):
 
 class Message(BaseModel):
     header: MessageHeader
-    account_keys: List[bytes]
+    account_keys: list[bytes]
     recent_blockhash: bytes
-    instructions: List["CompiledInstruction"]
+    instructions: list["CompiledInstruction"]
     versioned: bool
-    address_table_lookups: List[MessageAddressTableLookup]
+    address_table_lookups: list[MessageAddressTableLookup]
 
     @classmethod
     def from_proto(cls, proto_message: "ProtoMessage") -> "Message":
@@ -1177,18 +1113,14 @@ class Message(BaseModel):
         proto.header = self.header.to_proto()
         proto.account_keys = self.account_keys
         proto.recent_blockhash = self.recent_blockhash
-        proto.instructions = [
-            instruction.to_proto() for instruction in self.instructions
-        ]
+        proto.instructions = [instruction.to_proto() for instruction in self.instructions]
         proto.versioned = self.versioned
-        proto.address_table_lookups = [
-            lookup.to_proto() for lookup in self.address_table_lookups
-        ]
+        proto.address_table_lookups = [lookup.to_proto() for lookup in self.address_table_lookups]
         return proto
 
 
 class Transaction(BaseModel):
-    signatures: List[bytes]
+    signatures: list[bytes]
     message: Message
 
     @classmethod
@@ -1277,9 +1209,7 @@ class CompiledInstruction(BaseModel):
     data: bytes
 
     @classmethod
-    def from_proto(
-        cls, proto_instruction: "ProtoCompiledInstruction"
-    ) -> "CompiledInstruction":
+    def from_proto(cls, proto_instruction: "ProtoCompiledInstruction") -> "CompiledInstruction":
         return cls(
             program_id_index=proto_instruction.program_id_index,
             accounts=proto_instruction.accounts,
@@ -1298,12 +1228,10 @@ class InnerInstruction(BaseModel):
     program_id_index: int
     accounts: bytes
     data: bytes
-    stack_height: Optional[int] = None
+    stack_height: int | None = None
 
     @classmethod
-    def from_proto(
-        cls, proto_instruction: "ProtoInnerInstruction"
-    ) -> "InnerInstruction":
+    def from_proto(cls, proto_instruction: "ProtoInnerInstruction") -> "InnerInstruction":
         return cls(
             program_id_index=proto_instruction.program_id_index,
             accounts=proto_instruction.accounts,
@@ -1322,12 +1250,10 @@ class InnerInstruction(BaseModel):
 
 class InnerInstructions(BaseModel):
     index: int
-    instructions: List[InnerInstruction]
+    instructions: list[InnerInstruction]
 
     @classmethod
-    def from_proto(
-        cls, proto_instruction: "ProtoInnerInstructions"
-    ) -> "InnerInstructions":
+    def from_proto(cls, proto_instruction: "ProtoInnerInstructions") -> "InnerInstructions":
         return cls(
             index=proto_instruction.index,
             instructions=[
@@ -1339,9 +1265,7 @@ class InnerInstructions(BaseModel):
     def to_proto(self) -> "ProtoInnerInstructions":
         proto = ProtoInnerInstructions()
         proto.index = self.index
-        proto.instructions = [
-            instruction.to_proto() for instruction in self.instructions
-        ]
+        proto.instructions = [instruction.to_proto() for instruction in self.instructions]
         return proto
 
 
@@ -1359,27 +1283,25 @@ class TransactionError(BaseModel):
 
 
 class TransactionStatusMeta(BaseModel):
-    err: Optional[TransactionError]
+    err: TransactionError | None
     fee: int
-    pre_balances: List[int]
-    post_balances: List[int]
-    inner_instructions: List[InnerInstructions]
+    pre_balances: list[int]
+    post_balances: list[int]
+    inner_instructions: list[InnerInstructions]
     inner_instructions_none: bool
-    log_messages: List[str]
+    log_messages: list[str]
     log_messages_none: bool
-    pre_token_balances: List[TokenBalance]
-    post_token_balances: List[TokenBalance]
-    rewards: List["Reward"]
-    loaded_writable_addresses: List[bytes]
-    loaded_readonly_addresses: List[bytes]
-    return_data: Optional[ReturnData]
+    pre_token_balances: list[TokenBalance]
+    post_token_balances: list[TokenBalance]
+    rewards: list["Reward"]
+    loaded_writable_addresses: list[bytes]
+    loaded_readonly_addresses: list[bytes]
+    return_data: ReturnData | None
     return_data_none: bool
-    compute_units_consumed: Optional[int] = None
+    compute_units_consumed: int | None = None
 
     @classmethod
-    def from_proto(
-        cls, proto_meta: "ProtoTransactionStatusMeta"
-    ) -> "TransactionStatusMeta":
+    def from_proto(cls, proto_meta: "ProtoTransactionStatusMeta") -> "TransactionStatusMeta":
         return cls(
             err=TransactionError.from_proto(proto_meta.err) if proto_meta.err else None,
             fee=proto_meta.fee,
@@ -1393,20 +1315,16 @@ class TransactionStatusMeta(BaseModel):
             log_messages=proto_meta.log_messages,
             log_messages_none=proto_meta.log_messages_none,
             pre_token_balances=[
-                TokenBalance.from_proto(balance)
-                for balance in proto_meta.pre_token_balances
+                TokenBalance.from_proto(balance) for balance in proto_meta.pre_token_balances
             ],
             post_token_balances=[
-                TokenBalance.from_proto(balance)
-                for balance in proto_meta.post_token_balances
+                TokenBalance.from_proto(balance) for balance in proto_meta.post_token_balances
             ],
             rewards=[Reward.from_proto(reward) for reward in proto_meta.rewards],
             loaded_writable_addresses=proto_meta.loaded_writable_addresses,
             loaded_readonly_addresses=proto_meta.loaded_readonly_addresses,
             return_data=(
-                ReturnData.from_proto(proto_meta.return_data)
-                if proto_meta.return_data
-                else None
+                ReturnData.from_proto(proto_meta.return_data) if proto_meta.return_data else None
             ),
             return_data_none=proto_meta.return_data_none,
             compute_units_consumed=proto_meta.compute_units_consumed,
@@ -1424,12 +1342,8 @@ class TransactionStatusMeta(BaseModel):
         proto.inner_instructions_none = self.inner_instructions_none
         proto.log_messages = self.log_messages
         proto.log_messages_none = self.log_messages_none
-        proto.pre_token_balances = [
-            balance.to_proto() for balance in self.pre_token_balances
-        ]
-        proto.post_token_balances = [
-            balance.to_proto() for balance in self.post_token_balances
-        ]
+        proto.pre_token_balances = [balance.to_proto() for balance in self.pre_token_balances]
+        proto.post_token_balances = [balance.to_proto() for balance in self.post_token_balances]
         proto.rewards = [reward.to_proto() for reward in self.rewards]
         proto.loaded_writable_addresses = self.loaded_writable_addresses
         proto.loaded_readonly_addresses = self.loaded_readonly_addresses
@@ -1444,9 +1358,7 @@ class ConfirmedTransaction(BaseModel):
     meta: TransactionStatusMeta
 
     @classmethod
-    def from_proto(
-        cls, proto_transaction: "ProtoConfirmedTransaction"
-    ) -> "ConfirmedTransaction":
+    def from_proto(cls, proto_transaction: "ProtoConfirmedTransaction") -> "ConfirmedTransaction":
         print(proto_transaction)
         return cls(
             transaction=Transaction.from_proto(proto_transaction.transaction),
@@ -1488,7 +1400,7 @@ class Reward(BaseModel):
 
 
 class Rewards(BaseModel):
-    rewards: List[Reward]
+    rewards: list[Reward]
     num_partitions: "NumPartitions"
 
     @classmethod
@@ -1548,8 +1460,8 @@ class ConfirmedBlock(BaseModel):
     previous_blockhash: str
     blockhash: str
     parent_slot: int
-    transactions: List[ConfirmedTransaction]
-    rewards: List[Reward]
+    transactions: list[ConfirmedTransaction]
+    rewards: list[Reward]
     block_time: UnixTimestamp
     block_height: BlockHeight
     num_partitions: NumPartitions
@@ -1575,9 +1487,7 @@ class ConfirmedBlock(BaseModel):
         proto.previous_blockhash = self.previous_blockhash
         proto.blockhash = self.blockhash
         proto.parent_slot = self.parent_slot
-        proto.transactions = [
-            transaction.to_proto() for transaction in self.transactions
-        ]
+        proto.transactions = [transaction.to_proto() for transaction in self.transactions]
         proto.rewards = [reward.to_proto() for reward in self.rewards]
         proto.block_time = self.block_time.to_proto()
         proto.block_height = self.block_height.to_proto()

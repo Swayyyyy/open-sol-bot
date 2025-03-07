@@ -1,7 +1,8 @@
 """Telegram bot decorators."""
 
 import functools
-from typing import Any, Awaitable, Callable, TypeVar, cast
+from collections.abc import Awaitable, Callable
+from typing import Any, TypeVar, cast
 
 from aiogram.fsm.context import FSMContext
 

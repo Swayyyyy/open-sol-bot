@@ -1,11 +1,13 @@
 import asyncio
+
+import aioredis
 import orjson as json
 from aioredis.exceptions import RedisError
-from common.log import logger
-from wallet_tracker.constants import (
-    FAILED_TX_DETAIL_CHANNEL,
-    NEW_TX_DETAIL_CHANNEL,
-)
+from solbot_common.cp.tx_event import TxEventProducer
+from solbot_common.log import logger
+
+from wallet_tracker import benchmark
+from wallet_tracker.constants import FAILED_TX_DETAIL_CHANNEL, NEW_TX_DETAIL_CHANNEL
 from wallet_tracker.exceptions import (
     NotSwapTransaction,
     TransactionError,
@@ -13,10 +15,6 @@ from wallet_tracker.exceptions import (
     ZeroChangeAmountError,
 )
 from wallet_tracker.parser import RawTXParser
-import aioredis
-from wallet_tracker import benchmark
-
-from common.cp.tx_event import TxEventProducer
 
 
 class TransactionWorker:
@@ -77,9 +75,7 @@ class TransactionWorker:
             logger.info(f"Tx amount is zero, details: {tx_hash}")
             return
         except Exception as e:
-            logger.error(
-                f"Failed to process transaction: {e}, details: {tx_detail_text}"
-            )
+            logger.error(f"Failed to process transaction: {e}, details: {tx_detail_text}")
             logger.exception(e)
             # 加入到失败队列
             await self.push_parse_failed_to_redis(tx_detail_text)

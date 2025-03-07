@@ -24,7 +24,7 @@ preflight_check = false
 tx_simulate = false
 use_jito = true
 # jito_api 可根据服务器地址选择，就近原则 https://docs.jito.wtf/lowlatencytxnsend/#api
-jito_api = "https://mainnet.block-engine.jito.wtf"
+jito_api = "https://tokyo.mainnet.block-engine.jito.wtf"
 
 [api]
 helius_api_base_url = "https://api.helius.xyz/v0"
@@ -36,13 +36,14 @@ solscan_api_base_url = "https://pro-api.solscan.io/v2.0"
 solscan_api_key = ""
 
 [db]
-# -- for local
-# mysql_url = "mysql+pymysql://root:root@127.0.0.1:3306/solana_trade_bot"
-# redis_url = "redis://127.0.0.1:6379/0"
+# 数据库连接配置
+# 本地开发环境（从源码运行）使用以下配置：
+mysql_url = "mysql+pymysql://root:root@127.0.0.1:3307/solana_trade_bot"
+redis_url = "redis://127.0.0.1:6380/0"
 
-# -- for docker
-mysql_url = "mysql+pymysql://root:root@mysql:3306/solana_trade_bot"
-redis_url = "redis://redis:6379/0"
+# Docker 环境会通过环境变量自动覆盖为容器别名：
+# DB__MYSQL_URL=mysql+pymysql://root:root@mysql:3306/solana_trade_bot
+# DB__REDIS_URL=redis://redis:6379/0
 
 [sentry]
 enable = false

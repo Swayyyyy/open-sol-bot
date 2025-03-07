@@ -1,6 +1,5 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
-from common.types.tx import TxEvent
+from solbot_common.types.tx import TxEvent
 
 
 def notify_swap_keyboard(tx_event: TxEvent) -> InlineKeyboardMarkup:

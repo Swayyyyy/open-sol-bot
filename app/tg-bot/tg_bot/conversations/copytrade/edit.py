@@ -4,13 +4,13 @@ from typing import cast
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply, Message
+from solbot_common.log import logger
+from solbot_common.types.copytrade import CopyTrade
 
-from common.log import logger
 from tg_bot.conversations.copytrade.render import render
 from tg_bot.conversations.states import CopyTradeStates
 from tg_bot.keyboards.common import back_keyboard, confirm_keyboard
 from tg_bot.keyboards.copytrade import edit_copytrade_keyboard
-from common.types.copytrade import CopyTrade
 from tg_bot.services.copytrade import CopyTradeService
 from tg_bot.templates import EDIT_COPYTRADE_MESSAGE
 from tg_bot.utils import cleanup_conversation_messages
@@ -101,9 +101,7 @@ async def handle_set_alias(message: Message, state: FSMContext):
 
     # Get stored data
     data = await state.get_data()
-    copytrade_settings: CopyTrade | None = cast(
-        CopyTrade | None, data.get("copytrade_settings")
-    )
+    copytrade_settings: CopyTrade | None = cast(CopyTrade | None, data.get("copytrade_settings"))
 
     if copytrade_settings is None:
         logger.warning("Copytrade settings not found in state")
@@ -181,9 +179,7 @@ async def handle_set_fixed_buy_amount(message: Message, state: FSMContext):
 
     # Get stored data
     data = await state.get_data()
-    copytrade_settings: CopyTrade | None = cast(
-        CopyTrade | None, data.get("copytrade_settings")
-    )
+    copytrade_settings: CopyTrade | None = cast(CopyTrade | None, data.get("copytrade_settings"))
 
     if copytrade_settings is None:
         logger.warning("Copytrade settings not found in state")
@@ -192,9 +188,7 @@ async def handle_set_fixed_buy_amount(message: Message, state: FSMContext):
     try:
         fixed_buy_amount = float(fixed_buy_amount)
     except ValueError:
-        msg = await message.reply(
-            "❌ 无效的买入数量，请重新输入：", reply_markup=ForceReply()
-        )
+        msg = await message.reply("❌ 无效的买入数量，请重新输入：", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -206,9 +200,7 @@ async def handle_set_fixed_buy_amount(message: Message, state: FSMContext):
         return
 
     if fixed_buy_amount <= 0 or fixed_buy_amount < 0.00000001:
-        msg = await message.reply(
-            "❌ 无效的买入数量，请重新输入：", reply_markup=ForceReply()
-        )
+        msg = await message.reply("❌ 无效的买入数量，请重新输入：", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -264,9 +256,7 @@ async def toggle_auto_follow(callback: CallbackQuery, state: FSMContext):
 
     # Get stored data
     data = await state.get_data()
-    copytrade_settings: CopyTrade | None = cast(
-        CopyTrade | None, data.get("copytrade_settings")
-    )
+    copytrade_settings: CopyTrade | None = cast(CopyTrade | None, data.get("copytrade_settings"))
 
     if copytrade_settings is None:
         logger.warning("Copytrade settings not found in state")
@@ -344,9 +334,7 @@ async def toggle_no_sell(callback: CallbackQuery, state: FSMContext):
 
     # Get stored data
     data = await state.get_data()
-    copytrade_settings: CopyTrade | None = cast(
-        CopyTrade | None, data.get("copytrade_settings")
-    )
+    copytrade_settings: CopyTrade | None = cast(CopyTrade | None, data.get("copytrade_settings"))
 
     if copytrade_settings is None:
         logger.warning("Copytrade settings not found in state")
@@ -413,9 +401,7 @@ async def handle_set_priority(message: Message, state: FSMContext):
 
     # Get stored data
     data = await state.get_data()
-    copytrade_settings: CopyTrade | None = cast(
-        CopyTrade | None, data.get("copytrade_settings")
-    )
+    copytrade_settings: CopyTrade | None = cast(CopyTrade | None, data.get("copytrade_settings"))
 
     if copytrade_settings is None:
         logger.warning("Copytrade settings not found in state")
@@ -424,9 +410,7 @@ async def handle_set_priority(message: Message, state: FSMContext):
     try:
         priority = float(priority)
     except ValueError:
-        msg = await message.reply(
-            "❌ 无效的优先费用，请重新输入：", reply_markup=ForceReply()
-        )
+        msg = await message.reply("❌ 无效的优先费用，请重新输入：", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -438,9 +422,7 @@ async def handle_set_priority(message: Message, state: FSMContext):
         return
 
     if priority <= 0:
-        msg = await message.reply(
-            "❌ 无效的优先费用，请重新输入：", reply_markup=ForceReply()
-        )
+        msg = await message.reply("❌ 无效的优先费用，请重新输入：", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -497,9 +479,7 @@ async def toggle_anti_sandwich(callback: CallbackQuery, state: FSMContext):
 
     # Get stored data
     data = await state.get_data()
-    copytrade_settings: CopyTrade | None = cast(
-        CopyTrade | None, data.get("copytrade_settings")
-    )
+    copytrade_settings: CopyTrade | None = cast(CopyTrade | None, data.get("copytrade_settings"))
 
     if copytrade_settings is None:
         logger.warning("Copytrade settings not found in state")
@@ -533,9 +513,7 @@ async def toggle_auto_slippage(callback: CallbackQuery, state: FSMContext):
 
     # Get stored data
     data = await state.get_data()
-    copytrade_settings: CopyTrade | None = cast(
-        CopyTrade | None, data.get("copytrade_settings")
-    )
+    copytrade_settings: CopyTrade | None = cast(CopyTrade | None, data.get("copytrade_settings"))
 
     if copytrade_settings is None:
         logger.warning("Copytrade settings not found in state")
@@ -598,9 +576,7 @@ async def handle_set_custom_slippage(message: Message, state: FSMContext):
 
     # Get stored data
     data = await state.get_data()
-    copytrade_settings: CopyTrade | None = cast(
-        CopyTrade | None, data.get("copytrade_settings")
-    )
+    copytrade_settings: CopyTrade | None = cast(CopyTrade | None, data.get("copytrade_settings"))
 
     if copytrade_settings is None:
         logger.warning("Copytrade settings not found in state")
@@ -609,9 +585,7 @@ async def handle_set_custom_slippage(message: Message, state: FSMContext):
     try:
         custom_slippage = float(custom_slippage)
     except ValueError:
-        msg = await message.reply(
-            "❌ 无效的自定义滑点，请重新输入：", reply_markup=ForceReply()
-        )
+        msg = await message.reply("❌ 无效的自定义滑点，请重新输入：", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -623,9 +597,7 @@ async def handle_set_custom_slippage(message: Message, state: FSMContext):
         return
 
     if custom_slippage <= 0 or custom_slippage > 100:
-        msg = await message.reply(
-            "❌ 无效的自定义滑点，请重新输入：", reply_markup=ForceReply()
-        )
+        msg = await message.reply("❌ 无效的自定义滑点，请重新输入：", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -690,9 +662,7 @@ async def delete_copytrade(callback: CallbackQuery, state: FSMContext):
     await callback.message.reply(
         text,
         parse_mode="HTML",
-        reply_markup=confirm_keyboard(
-            "confirm_delete_copytrade", "cancel_delete_copytrade"
-        ),
+        reply_markup=confirm_keyboard("confirm_delete_copytrade", "cancel_delete_copytrade"),
     )
 
 
@@ -708,9 +678,7 @@ async def confirm_delete_copytrade(callback: CallbackQuery, state: FSMContext):
 
     # Get stored data
     data = await state.get_data()
-    copytrade_settings: CopyTrade | None = cast(
-        CopyTrade | None, data.get("copytrade_settings")
-    )
+    copytrade_settings: CopyTrade | None = cast(CopyTrade | None, data.get("copytrade_settings"))
 
     if copytrade_settings is None:
         logger.warning("Copytrade settings not found in state")
@@ -767,9 +735,7 @@ async def toggle_copytrade(callback: CallbackQuery, state: FSMContext):
 
     # Get stored data
     data = await state.get_data()
-    copytrade_settings: CopyTrade | None = cast(
-        CopyTrade | None, data.get("copytrade_settings")
-    )
+    copytrade_settings: CopyTrade | None = cast(CopyTrade | None, data.get("copytrade_settings"))
 
     if copytrade_settings is None:
         logger.warning("Copytrade settings not found in state")

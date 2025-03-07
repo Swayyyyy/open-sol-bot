@@ -1,8 +1,8 @@
 from aiogram import enums, types
+from solbot_common.types.bot_setting import BotSetting as Setting
+from solbot_services.bot_setting import BotSettingService as SettingService
 
 from tg_bot.keyboards.setting import settings_keyboard
-from common.types.bot_setting import BotSetting as Setting
-from services.bot_setting import BotSettingService as SettingService
 from tg_bot.services.user import UserService
 from tg_bot.templates import render_setting_message
 

@@ -1,15 +1,10 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import (
-    CallbackQuery,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    Message,
-)
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from solbot_common.log import logger
 
-from common.log import logger
 from tg_bot.conversations.states import StartStates
 from tg_bot.services.activation import ActivationCodeService
 
@@ -58,20 +53,14 @@ async def handle_activation_code(message: Message, state: FSMContext):
 
     text = message.text.strip()
     activation_code_service = ActivationCodeService()
-    is_activated = await activation_code_service.activate_user(
-        message.from_user.id, text
-    )
+    is_activated = await activation_code_service.activate_user(message.from_user.id, text)
     if is_activated:
         expired_timestamp = await activation_code_service.get_user_expired_timestamp(
             message.from_user.id
         )  # seconds
-        expired_datetime = datetime.fromtimestamp(expired_timestamp).strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
+        expired_datetime = datetime.fromtimestamp(expired_timestamp).strftime("%Y-%m-%d %H:%M:%S")
         await message.answer(
-            "✅ 激活成功！有效期至 {}，请点击 /start 开始使用机器人。".format(
-                expired_datetime
-            ),
+            f"✅ 激活成功！有效期至 {expired_datetime}，请点击 /start 开始使用机器人。",
         )
         await state.clear()
         logger.info(f"User {message.from_user.id} activate successfully")

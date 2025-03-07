@@ -2,16 +2,16 @@
 Message templates for Telegram bot responses using Jinja2
 """
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from jinja2 import BaseLoader, Environment
+from solbot_common.models.token_info import TokenInfo
+from solbot_common.types.bot_setting import BotSetting as Setting
+from solbot_common.types.holding import HoldingToken
+from solbot_common.utils.utils import keypair_to_private_key
 from solders.keypair import Keypair  # type: ignore
 
-from common.models.token_info import TokenInfo
-from common.utils.utils import keypair_to_private_key
 from tg_bot.models.monitor import Monitor
-from common.types.holding import HoldingToken
-from common.types.bot_setting import BotSetting as Setting
 from tg_bot.utils.bot import get_bot_name
 
 import datetime
@@ -62,9 +62,7 @@ COPYTRADE_TEMPLATE = env.from_string(
 """
 )
 
-COPYTRADE_MENU_TEMPLATE = env.from_string(
-    """当前有 {{ total }} 个跟单，{{ active_cnt }} 个活跃"""
-)
+COPYTRADE_MENU_TEMPLATE = env.from_string("""当前有 {{ total }} 个跟单，{{ active_cnt }} 个活跃""")
 
 CREATE_COPYTRADE_MESSAGE = "📝 创建跟单"
 EDIT_COPYTRADE_MESSAGE = "📝 编辑跟单"
@@ -96,7 +94,7 @@ EDIT_MONITOR_MESSAGE = env.from_string(
 )
 
 
-def render_monitor_menu(monitors: List[Monitor]):
+def render_monitor_menu(monitors: list[Monitor]):
     """渲染监听菜单消息"""
     return MONITOR_MENU_TEMPLATE.render(monitors=monitors)
 

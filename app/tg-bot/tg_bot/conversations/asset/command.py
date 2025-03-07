@@ -1,9 +1,7 @@
 from aiogram import types
-from aiogram.enums import ParseMode
+from solbot_common.log import logger
+from solbot_services.bot_setting import BotSettingService as SettingService
 
-from common.log import logger
-from tg_bot.keyboards.main_menu import main_menu_keyboard
-from services.bot_setting import BotSettingService as SettingService
 from tg_bot.services.user import UserService
 from tg_bot.utils.setting import get_wallet
 

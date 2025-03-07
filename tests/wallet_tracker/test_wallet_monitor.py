@@ -1,7 +1,7 @@
 # import pytest
 # from solders.pubkey import Pubkey
 # from wallet_monitor.main import WalletMonitor, get_wallet_tokens
-# from common.utils import get_async_client
+# from solbot_common.utils import get_async_client
 
 # # 标记整个模块使用异步
 # pytestmark = pytest.mark.asyncio

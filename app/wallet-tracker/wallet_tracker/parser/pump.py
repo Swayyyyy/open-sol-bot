@@ -1,7 +1,7 @@
 # from functools import cache
 
-# from common.constants import PUMP_FUN_PROGRAM, SOL, WSOL
-# from common.types import (
+# from solbot_common.constants import PUMP_FUN_PROGRAM, SOL, WSOL
+# from solbot_common.types import (
 #     SolAmountChange,
 #     TokenAmountChange,
 #     TxEvent,

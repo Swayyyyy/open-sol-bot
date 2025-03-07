@@ -1,7 +1,7 @@
 from aiogram import types
+from solbot_common.log import logger
+from solbot_services.bot_setting import BotSettingService as SettingService
 
-from common.log import logger
-from services.bot_setting import BotSettingService as SettingService
 from tg_bot.services.user import UserService
 
 from .render import render

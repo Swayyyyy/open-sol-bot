@@ -1,7 +1,7 @@
 from aiogram.types import Message
+from solbot_common.config import settings
+from solbot_common.log import logger
 
-from common.config import settings
-from common.log import logger
 from tg_bot.services.activation import ActivationCodeService
 
 
@@ -31,6 +31,4 @@ async def generate_activation_code(message: Message):
     seconds = expired_in_days * 24 * 60 * 60
     code = await ActivationCodeService().generate_code(seconds)
     logger.info(f"User {user_id} generate activation code: {code}")
-    await message.answer(
-        f"✅ 激活码: <code>{code}</code>(点击复制) ({expired_in_days} 天)"
-    )
+    await message.answer(f"✅ 激活码: <code>{code}</code>(点击复制) ({expired_in_days} 天)")

@@ -1,6 +1,5 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
-from common.types.bot_setting import BotSetting as Setting
+from solbot_common.types.bot_setting import BotSetting as Setting
 
 
 def get_token_keyboard(setting: Setting, mint: str) -> InlineKeyboardMarkup:
@@ -34,9 +33,7 @@ def get_token_keyboard(setting: Setting, mint: str) -> InlineKeyboardMarkup:
     )
 
     # 分隔线：买
-    keyboard.append(
-        [InlineKeyboardButton(text="----- 买 -----", callback_data="separator_buy")]
-    )
+    keyboard.append([InlineKeyboardButton(text="----- 买 -----", callback_data="separator_buy")])
 
     # 买入金额按钮（两行）
     keyboard.append(
@@ -70,9 +67,7 @@ def get_token_keyboard(setting: Setting, mint: str) -> InlineKeyboardMarkup:
     )
 
     # 分隔线：卖
-    keyboard.append(
-        [InlineKeyboardButton(text="----- 卖 -----", callback_data="separator_sell")]
-    )
+    keyboard.append([InlineKeyboardButton(text="----- 卖 -----", callback_data="separator_sell")])
 
     # 卖出比例按钮
     keyboard.append(

@@ -1,24 +1,47 @@
 import asyncio
-import signal
-
-from gmgnbot.Data import GMGN, OKLine
-from common.log import logger
-from common.prestart import pre_start
-from common.config import settings
-from sqlalchemy.ext.asyncio import AsyncSession
-from db.redis import RedisClient
-from db.session import NEW_ASYNC_SESSION, provide_session
-import time
 import datetime
+import signal
+import time
 from collections import Counter
 from dataclasses import dataclass
-from common.models.tg_bot.monitor import Monitor as MonitorModel
-from common.config import settings
-from gmgnbot.constants import NEW_TOKEN_CHANNEL
+from typing import ParamSpec, TypedDict, TypeVar, cast
 
+from gmgnbot.constants import NEW_TOKEN_CHANNEL
+from gmgnbot.Data import GMGN, OKLine
+from gmgnbot.monitor.copytrade import CopyTradeService
 from gmgnbot.monitor.monitor import MonitorService
+from solbot_common.config import settings
+from solbot_common.log import logger
+from solbot_common.models.tg_bot.monitor import Monitor as MonitorModel
+from solbot_common.models.tg_bot.user import User
+from solbot_common.prestart import pre_start
+from solbot_db.redis import RedisClient
+from solbot_db.session import NEW_ASYNC_SESSION, provide_session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 monitor_service = MonitorService()
+copy_trade_service = CopyTradeService()
+
+
+@dataclass
+class CopyTrade:
+    owner: str
+    chat_id: int
+    pk: int | None = None  # primary key
+    target_wallet: str | None = None
+    wallet_alias: str | None = None
+    is_fixed_buy: bool = True
+    fixed_buy_amount: float = 0.5
+    auto_follow: bool = True
+    stop_loss: bool = False
+    no_sell: bool = False
+    priority: float = 0.002
+    anti_sandwich: bool = False
+    auto_slippage: bool = True
+    custom_slippage: float = 10  # 0-100%
+    active: bool = True
+
 
 @dataclass
 class Monitor:
@@ -30,6 +53,7 @@ class Monitor:
 
 
 class AddressMonitor():
+
     def __init__(self):
         self.tasks: set[asyncio.Task] = set()
         self._shutdown_event = asyncio.Event()
@@ -55,25 +79,34 @@ class AddressMonitor():
 
     async def analysis_token(self, token_address):
         gmgn_monitor = GMGN()
-        kline = gmgn_monitor.fetch_kline_data(token_address, datetime.datetime.now() - datetime.timedelta(hours=3), datetime.datetime.now(), "1m")
+        kline = gmgn_monitor.fetch_kline_data(
+            token_address,
+            datetime.datetime.now() - datetime.timedelta(hours=3),
+            datetime.datetime.now(), "1m")
         kline['volume'] = kline['volume'].astype(float)
-        start_time = kline.loc[kline['volume']>0]['time'].min()
-        trade_info = gmgn_monitor.fetch_trader_data(token_address, start_time, 1000)
-        buyer = trade_info.loc[trade_info['event']=='buy']['maker'].value_counts()
+        start_time = kline.loc[kline['volume'] > 0]['time'].min()
+        trade_info = gmgn_monitor.fetch_trader_data(token_address, start_time,
+                                                    1000)
+        buyer = trade_info.loc[trade_info['event'] ==
+                               'buy']['maker'].value_counts()
         buyer = buyer[buyer > 3]
-        seller = trade_info.loc[trade_info['event']=='sell']['maker'].value_counts()
+        seller = trade_info.loc[trade_info['event'] ==
+                                'sell']['maker'].value_counts()
         seller = seller[seller > 3]
         either_operator = buyer.index.union(seller.index)
         opeartor_history = {}
         opeartor_history_str = {}
         for i in either_operator:
             opeartor_history[i] = gmgn_monitor.fetch_hoding(i)
-            opeartor_history_str[i] = ','.join(opeartor_history[i]['token_address'].values[:10])
+            opeartor_history_str[i] = ','.join(
+                opeartor_history[i]['token_address'].values[:10])
         history_count = Counter(opeartor_history_str.values())
         select_wallets = []
         for i in opeartor_history_str:
-            if history_count[opeartor_history_str[i]] > 2:
+            if history_count[opeartor_history_str[i]] > 5:
                 select_wallets.append(i)
+        if len(select_wallets) < 5:
+            return
         await self.AddToMonitor(select_wallets)
 
     async def AddToMonitor(self, target_wallets) -> None:
@@ -82,24 +115,36 @@ class AddressMonitor():
             raise ValueError("target_wallet is required")
         logger.info(f"Adding monitor for wallet: {target_wallets}")
         try:
-            # 第一步：创建数据库记录
-            monitors = [Monitor(
-                chat_id=settings.tg_bot.manager_id,
-                target_wallet=target_wallet,
-                wallet_alias=None,
-                active=True,
-            ) for target_wallet in target_wallets]
-            await monitor_service.addall(monitors)
+            pbkey = await copy_trade_service.getpk(settings.tg_bot.manager_id)
+            if not pbkey:
+                raise ValueError("Wallet not found")
+            # stmt = select(User.pubkey).where(User.chat_id == settings.tg_bot.manager_id).limit(1)
+            # public_key = (await NEW_ASYNC_SESSION.execute(stmt)).scalar_one_or_none()
+            monitors = [
+                CopyTrade(
+                    owner=pbkey,
+                    chat_id=settings.tg_bot.manager_id,
+                    target_wallet=target_wallet,
+                    wallet_alias=None,
+                    active=True,
+                ) for target_wallet in target_wallets
+            ]
+            await copy_trade_service.addall(monitors)
 
         except Exception as e:
             raise ValueError(f"Failed to create monitor: {e}")
-           
-    
+
+
 async def main():
     pre_start()
     monitor = AddressMonitor()
-    await monitor.AddToMonitor(['9CPwN1YqWnLhgLUAQXNLxrPe8vQ1UpW7uLQgw45pqKEi', 'GbyNW641pn6QjdNooaAkHbSCihGogoBJdpPDZa1RZpQs'])
+    await monitor.AddToMonitor([
+        'G7ZXGygKPS2vts5eZ6ws8sXPVdqr1VBKhiVBz6qmShbN',
+        'Db43M7vneandhvPW2kwn92dZEBA1pdubQ6FMGJAFWZUF',
+        'Hn5HkzBp2TXJ1CpL22kXjmveKT3DcoUZ6nPnQZcJX9DU',
+        'HsJN2ESiwGaAcwhgS8vqJLYb7DnnYdb1RTS1j5hTePcz',
+    ])
+
 
 if __name__ == "__main__":
     asyncio.run(main())
-    

@@ -4,8 +4,7 @@ import asyncio
 
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ForceReply, Message
-
-from common.log import logger
+from solbot_common.log import logger
 
 
 async def cleanup_conversation_messages(message: Message, state: FSMContext):
@@ -34,9 +33,7 @@ async def cleanup_conversation_messages(message: Message, state: FSMContext):
 
 
 # 数据校验失败并要求用户重新输入
-async def invalid_input_and_request_reinput(
-    text: str, last_message: Message, state: FSMContext
-):
+async def invalid_input_and_request_reinput(text: str, last_message: Message, state: FSMContext):
     msg = await last_message.answer(text, reply_markup=ForceReply())
     await cleanup_conversation_messages(last_message, state)
     await state.update_data(
@@ -63,4 +60,6 @@ async def delete_later(message: Message, delay: int = 5):
             # 如果删除消息失败，可能是消息已经被删除，或者消息不存在
             logger.warning("Error deleting message: {}", e)
 
-    asyncio.create_task(_delete_later())
+    delete_task = asyncio.create_task(_delete_later())
+    # 添加任务完成回调以处理可能的异常
+    delete_task.add_done_callback(lambda t: t.exception() if t.exception() else None)

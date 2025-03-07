@@ -1,4 +1,4 @@
-from common.models.new_token import NewToken
+from solbot_common.models.new_token import NewToken
 
 
 def test_new_token_model():

@@ -1,7 +1,7 @@
 # import pytest
-# from common.log import logger
+# from solbot_common.log import logger
 # from solana_trade_bot.trading.raydium.swap_builder import RaydiumSwapBuilder
-# from common.constants import SOL_DECIMAL
+# from solbot_common.constants import SOL_DECIMAL
 
 
 # @pytest.fixture

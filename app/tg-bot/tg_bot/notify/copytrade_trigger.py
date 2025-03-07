@@ -1,17 +1,16 @@
 import asyncio
 
-from aiogram.types import LinkPreviewOptions
 import aioredis
 from aiogram import Bot
+from aiogram.types import LinkPreviewOptions
+from jinja2 import BaseLoader, Environment
+from solbot_cache.token_info import TokenInfoCache
+from solbot_common.cp.copytrade_event import NotifyCopyTradeConsumer
+from solbot_common.log import logger
+from solbot_common.types.swap import SwapEvent
 
-from cache.token_info import TokenInfoCache
-from common.cp.copytrade_event import NotifyCopyTradeConsumer
-from common.log import logger
-from common.types.swap import SwapEvent
 from tg_bot.services.copytrade import CopyTradeService
 from tg_bot.services.user import UserService
-from jinja2 import BaseLoader, Environment
-
 from tg_bot.utils.text import short_text
 
 env = Environment(
@@ -133,7 +132,9 @@ class CopyTradeNotify:
     async def start(self):
         """启动跟单通知"""
         # 创建任务但不等待它完成
-        asyncio.create_task(self.consumer.start())
+        consumer_task = asyncio.create_task(self.consumer.start())
+        # 添加任务完成回调以处理可能的异常
+        consumer_task.add_done_callback(lambda t: t.exception() if t.exception() else None)
 
     def stop(self):
         """停止跟单通知"""

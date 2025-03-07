@@ -5,12 +5,12 @@
 
 import asyncio
 
-from common.constants import SOL_DECIMAL
-from common.log import logger
-from common.models.swap_record import SwapRecord, TransactionStatus
-from common.types.swap import SwapEvent
-from common.utils.utils import validate_transaction
-from db.session import NEW_ASYNC_SESSION, provide_session
+from solbot_common.constants import SOL_DECIMAL
+from solbot_common.log import logger
+from solbot_common.models.swap_record import SwapRecord, TransactionStatus
+from solbot_common.types.swap import SwapEvent
+from solbot_common.utils.utils import validate_transaction
+from solbot_db.session import NEW_ASYNC_SESSION, provide_session
 from solders.signature import Signature  # type: ignore
 
 from .analyzer import TransactionAnalyzer
@@ -44,7 +44,7 @@ class SwapSettlementProcessor:
 
         Examples:
             >>> from solders.signature import Signature  # type: ignore
-            >>> from common.models.swap_record import TransactionStatus
+            >>> from solbot_common.models.swap_record import TransactionStatus
             >>> tx_hash = Signature.from_string("4uTy6e7h2SyxuwMyGsJ2Mxh3Rrj99CFeQ6uF1H8xFsEzW8xfrUZ9Xb8QxYutd5zt2cutP45CSPX3CypMAc3ykr2q")
             >>> status = await validator.validate(tx_hash)
             >>> if status == TransactionStatus.SUCCESS:
@@ -78,9 +78,7 @@ class SwapSettlementProcessor:
             await asyncio.sleep(1)
         return TransactionStatus.EXPIRED
 
-    async def process(
-        self, signature: Signature | None, swap_event: SwapEvent
-    ) -> SwapRecord:
+    async def process(self, signature: Signature | None, swap_event: SwapEvent) -> SwapRecord:
         """处理交易
 
         Args:

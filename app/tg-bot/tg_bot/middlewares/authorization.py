@@ -1,15 +1,11 @@
-from typing import Any, Awaitable, Callable
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from aiogram import BaseMiddleware
-from aiogram.types import (
-    CallbackQuery,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    Message,
-)
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from loguru import logger
+from solbot_common.config import settings
 
-from common.config import settings
 from tg_bot.services.activation import ActivationCodeService
 
 
@@ -40,9 +36,7 @@ class AuthorizationMiddleware(BaseMiddleware):
         if isinstance(event, Message) and event.text is not None:
             message = event
             text = event.text.strip()
-            if text == "/chat_id":
-                return await handler(event, data)
-            elif text[0] != "/":
+            if text == "/chat_id" or text[0] != "/":
                 return await handler(event, data)
         elif isinstance(event, CallbackQuery) and event.data is not None:
             message = event.message
@@ -58,8 +52,7 @@ class AuthorizationMiddleware(BaseMiddleware):
         passed = False
         if user_license is None:
             await message.answer(
-                "这是一个私有机器人，请输入激活码以继续使用。\n"
-                "如需获取激活码，请联系管理员。",
+                "这是一个私有机器人，请输入激活码以继续使用。\n如需获取激活码，请联系管理员。",
                 reply_markup=InlineKeyboardMarkup(
                     inline_keyboard=[
                         [

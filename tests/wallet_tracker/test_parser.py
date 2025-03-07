@@ -1,9 +1,9 @@
 import json
 from pathlib import Path
-import pytest
 
+import pytest
+from solbot_common.types import TxType
 from wallet_tracker.parser.raw_tx import RawTXParser
-from common.types import TxType
 
 
 def read_raw_tx(name: str) -> dict:

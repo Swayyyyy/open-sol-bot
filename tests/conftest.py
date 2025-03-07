@@ -1,8 +1,9 @@
-import pytest
-import time
 import os
-from pathlib import Path
 import sys
+import time
+from pathlib import Path
+
+import pytest
 
 cur_dir = Path(__file__).parent
 config_file_path = cur_dir.parent / "config.test.toml"

@@ -1,18 +1,13 @@
 from collections.abc import Sequence
 from typing import Literal
 
+from solbot_common.config import settings
+from solbot_common.cp.monitor_events import MonitorEvent, MonitorEventConsumer, MonitorEventType
+from solbot_common.log import logger
+from solbot_common.models.tg_bot.monitor import Monitor
+from solbot_db.redis import RedisClient
+from solbot_services.copytrade import CopyTradeService
 from solders.pubkey import Pubkey  # type: ignore
-
-from common.config import settings
-from common.cp.monitor_events import (
-    MonitorEvent,
-    MonitorEventConsumer,
-    MonitorEventType,
-)
-from common.log import logger
-from common.models.tg_bot.monitor import Monitor
-from db.redis import RedisClient
-from services.copytrade import CopyTradeService
 
 from .geyser.tx_subscriber import TransactionDetailSubscriber as GeyserMonitor
 from .wss.tx_subscriber import TransactionDetailSubscriber as RPCMonitor
@@ -61,22 +56,16 @@ class TxMonitor:
         monitor_addresses = await Monitor.get_active_wallet_addresses()
         copytrade_addresses = await CopyTradeService.get_active_wallet_addresses()
         # 合并两个列表
-        active_wallet_addresses = list(
-            set(list(monitor_addresses) + list(copytrade_addresses))
-        )
+        active_wallet_addresses = list(set(list(monitor_addresses) + list(copytrade_addresses)))
         for address in active_wallet_addresses:
-            await self.monitor.subscribe_wallet_transactions(
-                Pubkey.from_string(address)
-            )
+            await self.monitor.subscribe_wallet_transactions(Pubkey.from_string(address))
             logger.debug(f"Subscribed to wallet: {address}")
 
         # 开始处理事件
         logger.info("Start processing monitor events")
         while True:
             try:
-                message = await pubsub.get_message(
-                    ignore_subscribe_messages=True, timeout=0.5
-                )
+                message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=0.5)
                 if message is None:
                     continue
                 await self.events.process_event(message)
@@ -95,9 +84,7 @@ class TxMonitor:
             await self.monitor.subscribe_wallet_transactions(wallet)
             logger.info(f"Resumed monitoring wallet: {wallet}")
         except Exception as e:
-            logger.error(
-                f"Failed to resume monitoring wallet {event.target_wallet}: {e}"
-            )
+            logger.error(f"Failed to resume monitoring wallet {event.target_wallet}: {e}")
             raise
     
     async def _handle_resume_many_event(self, event: MonitorEvent):
@@ -119,7 +106,5 @@ class TxMonitor:
             await self.monitor.unsubscribe_wallet_transactions(wallet)
             logger.info(f"Paused monitoring wallet: {wallet}")
         except Exception as e:
-            logger.error(
-                f"Failed to pause monitoring wallet {event.target_wallet}: {e}"
-            )
+            logger.error(f"Failed to pause monitoring wallet {event.target_wallet}: {e}")
             raise

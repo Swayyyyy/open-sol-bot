@@ -1,6 +1,6 @@
 import asyncio
+from collections.abc import AsyncGenerator
 from dataclasses import dataclass
-from typing import AsyncGenerator, Optional, Tuple
 
 import grpc
 from grpc.aio._channel import Channel
@@ -17,7 +17,7 @@ class InterceptorXToken(
     grpc.aio.StreamUnaryClientInterceptor,
     grpc.aio.StreamStreamClientInterceptor,
 ):
-    x_token: Optional[str] = None
+    x_token: str | None = None
     x_request_snapshot: bool = False
 
     def _inject_token(self, client_call_details):
@@ -78,13 +78,11 @@ class GeyserClient:
     async def connect(
         cls,
         endpoint: str,
-        x_token: Optional[str] = None,
+        x_token: str | None = None,
         x_request_snapshot: bool = False,
         **kwargs,
     ) -> "GeyserClient":
-        interceptor = InterceptorXToken(
-            x_token=x_token, x_request_snapshot=x_request_snapshot
-        )
+        interceptor = InterceptorXToken(x_token=x_token, x_request_snapshot=x_request_snapshot)
         if "interceptors" in kwargs:
             kwargs["interceptors"].append(interceptor)
         else:
@@ -110,7 +108,7 @@ class GeyserClient:
 
     async def subscribe(
         self,
-    ) -> Tuple[
+    ) -> tuple[
         asyncio.Queue[geyser_pb2.SubscribeRequest],
         AsyncGenerator[geyser_pb2.SubscribeUpdate, None],
     ]:
@@ -118,8 +116,8 @@ class GeyserClient:
 
     async def subscribe_with_request(
         self,
-        request: Optional[geyser_pb2.SubscribeRequest] = None,
-    ) -> Tuple[
+        request: geyser_pb2.SubscribeRequest | None = None,
+    ) -> tuple[
         asyncio.Queue[geyser_pb2.SubscribeRequest],
         AsyncGenerator[geyser_pb2.SubscribeUpdate, None],
     ]:
@@ -148,7 +146,7 @@ class GeyserClient:
         return await self.geyser.Ping(request)
 
     async def get_latest_blockhash(
-        self, commitment: Optional[CommitmentLevel] = None
+        self, commitment: CommitmentLevel | None = None
     ) -> geyser_pb2.GetLatestBlockhashResponse:
         request = geyser_pb2.GetLatestBlockhashRequest()
         if commitment is not None:
@@ -161,18 +159,16 @@ class GeyserClient:
         )
 
     async def get_block_height(
-        self, commitment: Optional[CommitmentLevel] = None
+        self, commitment: CommitmentLevel | None = None
     ) -> geyser_pb2.GetBlockHeightResponse:
         request = geyser_pb2.GetBlockHeightRequest()
         if commitment is not None:
             request.commitment = commitment.value
         proto_response = await self.geyser.GetBlockHeight(request)
-        return geyser_pb2.GetBlockHeightResponse(
-            block_height=proto_response.block_height
-        )
+        return geyser_pb2.GetBlockHeightResponse(block_height=proto_response.block_height)
 
     async def get_slot(
-        self, commitment: Optional[CommitmentLevel] = None
+        self, commitment: CommitmentLevel | None = None
     ) -> geyser_pb2.GetSlotResponse:
         request = geyser_pb2.GetSlotRequest()
         if commitment is not None:
@@ -181,7 +177,7 @@ class GeyserClient:
         return geyser_pb2.GetSlotResponse(slot=proto_response.slot)
 
     async def is_blockhash_valid(
-        self, blockhash: str, commitment: Optional[CommitmentLevel] = None
+        self, blockhash: str, commitment: CommitmentLevel | None = None
     ) -> geyser_pb2.IsBlockhashValidResponse:
         request = geyser_pb2.IsBlockhashValidRequest(blockhash=blockhash)
         if commitment is not None:

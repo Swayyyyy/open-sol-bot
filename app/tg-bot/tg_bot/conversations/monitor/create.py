@@ -186,9 +186,7 @@ async def handle_set_alias(message: Message, state: FSMContext):
 
     # Get stored data
     data = await state.get_data()
-    monitor_settings: Monitor | None = cast(
-        Monitor | None, data.get("monitor_settings")
-    )
+    monitor_settings: Monitor | None = cast(Monitor | None, data.get("monitor_settings"))
 
     if monitor_settings is None:
         logger.warning("Monitor settings not found in state")
@@ -249,9 +247,7 @@ async def submit_monitor(callback: CallbackQuery, state: FSMContext):
         return
 
     data = await state.get_data()
-    monitor_settings: Monitor | None = cast(
-        Monitor | None, data.get("monitor_settings")
-    )
+    monitor_settings: Monitor | None = cast(Monitor | None, data.get("monitor_settings"))
 
     if monitor_settings is None:
         logger.warning("Monitor settings not found in state")
@@ -259,9 +255,7 @@ async def submit_monitor(callback: CallbackQuery, state: FSMContext):
 
     if monitor_settings.target_wallet is None:
         # 发送错误消息并在 10 秒后删除
-        error_message = await callback.message.answer(
-            "❌ 创建失败，请设置正确的跟单地址"
-        )
+        error_message = await callback.message.answer("❌ 创建失败，请设置正确的跟单地址")
         await delete_later(error_message)
         return
 

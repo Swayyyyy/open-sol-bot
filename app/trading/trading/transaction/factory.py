@@ -1,8 +1,7 @@
 import asyncio
-from typing import List, Optional, Tuple
 
-from common.log import logger
 from solana.rpc.async_api import AsyncClient
+from solbot_common.log import logger
 from solders.keypair import Keypair  # type: ignore
 from solders.signature import Signature  # type: ignore
 from solders.transaction import VersionedTransaction  # type: ignore
@@ -40,7 +39,7 @@ class Swapper:
         in_type: SwapInType | None = None,
         use_jito: bool = False,
         priority_fee: float | None = None,
-    ) -> Optional[Signature]:
+    ) -> Signature | None:
         """执行代币交换操作
 
         Args:
@@ -75,7 +74,7 @@ class Swapper:
 class AggregateTransactionBuilder(TransactionBuilder):
     """聚合多个交易构建器,返回最快成功的结果"""
 
-    def __init__(self, rpc_client: AsyncClient, builders: List[TransactionBuilder]):
+    def __init__(self, rpc_client: AsyncClient, builders: list[TransactionBuilder]):
         """初始化聚合构建器
 
         Args:
@@ -95,8 +94,8 @@ class AggregateTransactionBuilder(TransactionBuilder):
         slippage_bps: int,
         in_type: SwapInType | None = None,
         use_jito: bool = False,
-        priority_fee: Optional[float] = None,
-    ) -> Tuple[TransactionBuilder, VersionedTransaction]:
+        priority_fee: float | None = None,
+    ) -> tuple[TransactionBuilder, VersionedTransaction]:
         """尝试使用指定构建器构建交易
 
         Returns:
@@ -115,7 +114,7 @@ class AggregateTransactionBuilder(TransactionBuilder):
             )
             return builder, tx
         except Exception as e:
-            logger.warning(f"Builder {builder.__class__.__name__} failed: {str(e)}")
+            logger.warning(f"Builder {builder.__class__.__name__} failed: {e!s}")
             raise
 
     async def build_swap_transaction(
@@ -127,7 +126,7 @@ class AggregateTransactionBuilder(TransactionBuilder):
         slippage_bps: int,
         in_type: SwapInType | None = None,
         use_jito: bool = False,
-        priority_fee: Optional[float] = None,
+        priority_fee: float | None = None,
     ) -> VersionedTransaction:
         """并行尝试所有构建器,返回最快成功的交易
 
@@ -158,9 +157,7 @@ class AggregateTransactionBuilder(TransactionBuilder):
 
         # 等待第一个成功的结果
         while tasks:
-            done, pending = await asyncio.wait(
-                tasks, return_when=asyncio.FIRST_COMPLETED
-            )
+            done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
 
             for task in done:
                 try:
@@ -168,9 +165,7 @@ class AggregateTransactionBuilder(TransactionBuilder):
                     # 取消其他正在进行的任务
                     for p in pending:
                         p.cancel()
-                    logger.info(
-                        f"Successfully built transaction with {builder.__class__.__name__}"
-                    )
+                    logger.info(f"Successfully built transaction with {builder.__class__.__name__}")
                     return tx
                 except Exception:
                     # 如果这个任务失败了,继续等待其他任务

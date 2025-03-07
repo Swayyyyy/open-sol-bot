@@ -8,8 +8,8 @@
 
 from typing import TypedDict
 
-from common.constants import SOL_DECIMAL, WSOL
-from common.utils.helius import HeliusAPI
+from solbot_common.constants import SOL_DECIMAL, WSOL
+from solbot_common.utils.helius import HeliusAPI
 
 # [
 #   {
@@ -342,9 +342,7 @@ class TransactionAnalyzer:
     def __init__(self) -> None:
         self.helius_api = HeliusAPI()
 
-    async def analyze_transaction(
-        self, tx_signature: str, user_account: str, mint: str
-    ) -> Result:
+    async def analyze_transaction(self, tx_signature: str, user_account: str, mint: str) -> Result:
         """分析交易详情
 
         Args:
@@ -368,25 +366,21 @@ class TransactionAnalyzer:
         token_transfers = tx_detail["tokenTransfers"]
         for token_transfer in token_transfers:
             # Buy
-            if token_transfer["fromUserAccount"] == user_account and token_transfer[
-                "mint"
-            ] == str(WSOL):
+            if token_transfer["fromUserAccount"] == user_account and token_transfer["mint"] == str(
+                WSOL
+            ):
                 sol_change -= token_transfer["tokenAmount"]
                 swap_sol_change -= token_transfer["tokenAmount"]
-            elif (
-                token_transfer["toUserAccount"] == user_account
-                and token_transfer["mint"] == mint
-            ):
+            elif token_transfer["toUserAccount"] == user_account and token_transfer["mint"] == mint:
                 token_change += token_transfer["tokenAmount"]
             # Sell
             elif (
-                token_transfer["fromUserAccount"] == user_account
-                and token_transfer["mint"] == mint
+                token_transfer["fromUserAccount"] == user_account and token_transfer["mint"] == mint
             ):
                 token_change -= token_transfer["tokenAmount"]
-            elif token_transfer["toUserAccount"] == user_account and token_transfer[
-                "mint"
-            ] == str(WSOL):
+            elif token_transfer["toUserAccount"] == user_account and token_transfer["mint"] == str(
+                WSOL
+            ):
                 sol_change += token_transfer["tokenAmount"]
                 swap_sol_change += token_transfer["tokenAmount"]
 

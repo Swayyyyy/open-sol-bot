@@ -4,12 +4,12 @@ from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply, Message
+from solbot_common.log import logger
+from solbot_common.utils import keypair_to_private_key
+from solbot_db.session import start_async_session
+from solbot_services.bot_setting import BotSettingService as SettingService
 from solders.keypair import Keypair  # type: ignore
 
-from common.log import logger
-from common.utils import keypair_to_private_key
-from db.session import start_async_session
-from services.bot_setting import BotSettingService as SettingService
 from tg_bot.conversations.states import WalletStates
 from tg_bot.keyboards.wallet import new_wallet_keyboard
 from tg_bot.services.user import UserService
@@ -172,9 +172,7 @@ async def handle_new_private_key(message: Message, state: FSMContext):
     if message.bot is None:
         logger.warning("No bot found in message")
         return
-    await message.bot.delete_message(
-        chat_id=prompt_chat_id, message_id=prompt_message_id
-    )
+    await message.bot.delete_message(chat_id=prompt_chat_id, message_id=prompt_message_id)
 
     await state.clear()
     await message.answer("导入新钱包私钥成功")

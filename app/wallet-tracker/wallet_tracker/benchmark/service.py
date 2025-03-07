@@ -1,6 +1,7 @@
-from db.redis import RedisClient
 from asyncio.queues import Queue
-from common.log import logger
+
+from solbot_common.log import logger
+from solbot_db.redis import RedisClient
 
 
 class BenchmarkService:
@@ -36,9 +37,7 @@ class BenchmarkService:
                     step = item.get("step")
                     timestamp = item.get("timestamp")
                     if tx_hash and step and timestamp:
-                        await self.redis.hset(
-                            f"benchmark:{tx_hash}", step, str(timestamp)
-                        )
+                        await self.redis.hset(f"benchmark:{tx_hash}", step, str(timestamp))
                 self.q.task_done()
             except Exception as e:
                 logger.error(f"Error processing item: {e}")
@@ -56,7 +55,7 @@ class BenchmarkService:
             await self.connect_redis()
         assert self.redis is not None, "Redis is not connected"
         result = await self.redis.hgetall(f"benchmark:{tx_hash}")
-        return {k: v for k, v in result.items()} if result else {}
+        return dict(result) if result else {}
 
     async def clear_timeline(self, tx_hash: str):
         """Clear the timeline data for a specific transaction"""

@@ -1,13 +1,10 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
-from common.types.bot_setting import BotSetting as Setting
+from solbot_common.types.bot_setting import BotSetting as Setting
 
 
 def settings_keyboard(setting: Setting) -> InlineKeyboardMarkup:
     # 自动滑点按钮文本
-    auto_slippage_text = (
-        "✅ 自动滑点开启" if setting.auto_slippage else "❌ 自动滑点关闭"
-    )
+    auto_slippage_text = "✅ 自动滑点开启" if setting.auto_slippage else "❌ 自动滑点关闭"
 
     return InlineKeyboardMarkup(
         inline_keyboard=[

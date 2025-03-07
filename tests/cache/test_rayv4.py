@@ -1,5 +1,5 @@
 import pytest
-from cache.auto.raydium_pool import get_preferred_pool
+from solbot_cache.rayidum import get_preferred_pool
 
 
 @pytest.mark.asyncio

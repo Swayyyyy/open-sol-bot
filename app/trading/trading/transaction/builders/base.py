@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Optional
 
 from solana.rpc.async_api import AsyncClient
 from solders.keypair import Keypair  # type: ignore
@@ -24,7 +23,7 @@ class TransactionBuilder(ABC):
         slippage_bps: int,
         in_type: SwapInType | None = None,
         use_jito: bool = False,
-        priority_fee: Optional[float] = None,
+        priority_fee: float | None = None,
     ) -> VersionedTransaction:
         """构建交易
 
