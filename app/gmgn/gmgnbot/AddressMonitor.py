@@ -30,7 +30,7 @@ class CopyTrade:
     target_wallet: str | None = None
     wallet_alias: str | None = None
     is_fixed_buy: bool = True
-    fixed_buy_amount: float = 0.5
+    fixed_buy_amount: float = 0.05
     auto_follow: bool = True
     stop_loss: bool = False
     no_sell: bool = False
@@ -69,7 +69,7 @@ class AddressMonitor():
         while True:
             try:
                 # data = await self.redis.brpop(NEW_TOKEN_CHANNEL, timeout=1)
-                data = self.redis.zrangebyscore(NEW_TOKEN_CHANNEL, 0, time.time())
+                data = await self.redis.zrangebyscore(NEW_TOKEN_CHANNEL, 0, time.time())
                 if data:
                     for address in data:
                         logger.info(f"New token address: {address}")
