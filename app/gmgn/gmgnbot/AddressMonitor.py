@@ -70,11 +70,11 @@ class AddressMonitor():
     
     async def start_monitor(self):
         while True:
-            logger.info("start monitor token...")
+            # logger.info("start monitor token...")
             try:
                 data = await self.redis.zrangebyscore(NEW_TOKEN_CHANNEL, min=0, max=int(time.time()))
-                print(data)
-                logger.info(f"redis result: {data}")
+                # print(data)
+                # logger.info(f"redis result: {data}")
                 if data:
                     for address in data:
                         logger.info(f"New token address: {address}")
