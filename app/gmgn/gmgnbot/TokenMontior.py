@@ -18,7 +18,6 @@ class GmgnMontior:
         self.gmgn_monitor = GMGN()
         self.OKLine = OKLine(settings.okline.channelAccessToken)
         self.redis = None
-        self.delay_seconds = 600
         
     async def start(self):
         """启动监控服务"""
@@ -29,8 +28,6 @@ class GmgnMontior:
         # 等待关闭信号
         await self._shutdown_event.wait()
 
-    
-        
     async def monitor_token(self):
         while True:
             try:
@@ -40,12 +37,12 @@ class GmgnMontior:
                     result = await self.redis.sadd(NEW_TOKEN_QUEUE_KEY, i)
                     if result:
                         logger.info(f'add new token: {i}')
+                        self.add_to_delay_queue(NEW_TOKEN_CHANNEL, i, 600)
                         # await self.redis.lpush(NEW_TOKEN_CHANNEL, i)
-                        execute_time = time.time() + self.delay_seconds
-                        # 使用有序集合存储任务，score 为任务的执行时间
-                        await self.redis.zadd(self.queue_key, {i: execute_time})
-        
                 time.sleep(60)
             except Exception as e:
                 logger.error(f"Error processing item: {e}")
     
+    def add_to_delay_queue(self, queue_name, task_id, delay_seconds):
+        score = time.time() + delay_seconds
+        self.redis.zadd(queue_name, {task_id: score})

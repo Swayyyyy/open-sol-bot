@@ -2,4 +2,4 @@
 
 # Redis keys
 NEW_TOKEN_QUEUE_KEY = "NewToken:GMGN"
-NEW_TOKEN_CHANNEL = "NewTokenChannel"
+NEW_TOKEN_CHANNEL = "NewTokenChannelWithDelay"

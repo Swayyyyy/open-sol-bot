@@ -66,26 +66,15 @@ class AddressMonitor():
         """启动监控服务"""
         logger.info("Starting address monitor service...")
         self.redis = await RedisClient.get_instance()
-        self.pop_script = self.redis.register_script("""
-        local res = redis.call('ZRANGE', KEYS[1], 0, 0, 'WITHSCORES')
-        if res[1] and tonumber(res[2]) <= tonumber(ARGV[1]) then
-            redis.call('ZREM', KEYS[1], res[1])
-            return res[1]
-        end
-        return nil
-        """)
         while True:
             try:
-                current_time = time.time()
-                result = await self.redis.eval(self.pop_script, 1, NEW_TOKEN_CHANNEL, current_time)
-                if result:
-                    # 如果 redis 连接使用的是 decode_responses=False 则返回的是 bytes 类型
-                    address = result.decode()
                 # data = await self.redis.brpop(NEW_TOKEN_CHANNEL, timeout=1)
-                # if data:
-                #     _, address = data
-                    logger.info(f"New token address: {address}")
-                    await self.analysis_token(address)
+                data = self.redis.zrangebyscore(NEW_TOKEN_CHANNEL, 0, time.time())
+                if data:
+                    for address in data:
+                        logger.info(f"New token address: {address}")
+                        await self.analysis_token(address)
+                        self.redis.zrem(NEW_TOKEN_CHANNEL, address)
             except Exception as e:
                 logger.error(f"Worker error: {e}")
                 logger.exception(e)
@@ -150,7 +139,6 @@ class AddressMonitor():
         except Exception as e:
             await self.AddToMonitor(target_wallets, retry + 1)
             logger.error(f"Failed to create monitor: {e}")
-            
 
 
 async def main():
