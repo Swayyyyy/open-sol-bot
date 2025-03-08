@@ -12,17 +12,16 @@ import datetime
 from gmgnbot.constants import NEW_TOKEN_QUEUE_KEY, NEW_TOKEN_CHANNEL
 
 class GmgnMontior:
-    def __init__(self):
+    def __init__(self,redis_client):
         self.tasks: set[asyncio.Task] = set()
         self._shutdown_event = asyncio.Event()
         self.gmgn_monitor = GMGN()
         self.OKLine = OKLine(settings.okline.channelAccessToken)
-        self.redis = None
+        self.redis = redis_client
         
     async def start(self):
         """启动监控服务"""
         logger.info("Starting pump monitor service...")
-        self.redis = await RedisClient.get_instance()
         await self.monitor_token()
 
         # 等待关闭信号
@@ -44,5 +43,15 @@ class GmgnMontior:
                 logger.error(f"Error processing item: {e}")
     
     async def add_to_delay_queue(self, queue_name, task_id, delay_seconds):
-        score = time.time() + delay_seconds
-        await self.redis.zadd(queue_name, {task_id: score})
+        score = int(time.time()) + delay_seconds
+        await self.redis.zadd(queue_name, score, task_id)
+        
+
+async def main():
+    pre_start()
+    monitor = GmgnMontior()
+    await monitor.init()
+    await monitor.add_to_delay_queue(NEW_TOKEN_CHANNEL,'4AujdjhoadPob9h7qBrSkHyJ5FmA9kNE8MBqHAFufnCj', 5)
+    
+if __name__ == "__main__":
+    asyncio.run(main())

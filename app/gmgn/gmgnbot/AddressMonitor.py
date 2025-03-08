@@ -1,3 +1,4 @@
+from builtins import print
 import asyncio
 import datetime
 import signal
@@ -49,15 +50,15 @@ class Monitor:
     wallet_alias: str | None = None
     active: bool = True
 
-
 class AddressMonitor():
 
-    def __init__(self):
+    def __init__(self, redis_client):
+        logger.info("Starting init address monitor service...")
         self.tasks: set[asyncio.Task] = set()
         self._shutdown_event = asyncio.Event()
         self.OKLine = OKLine(settings.okline.channelAccessToken)
         self.tokens_history = {}
-        self.redis = None
+        self.redis = redis_client
         self.monitor_service = MonitorService()
         self.copy_trade_service = CopyTradeService()
 
@@ -65,11 +66,15 @@ class AddressMonitor():
     async def start(self):
         """启动监控服务"""
         logger.info("Starting address monitor service...")
-        self.redis = await RedisClient.get_instance()
+        await self.start_monitor()
+    
+    async def start_monitor(self):
         while True:
+            logger.info("start monitor token...")
             try:
-                # data = await self.redis.brpop(NEW_TOKEN_CHANNEL, timeout=1)
-                data = await self.redis.zrangebyscore(NEW_TOKEN_CHANNEL, 0, time.time())
+                data = await self.redis.zrangebyscore(NEW_TOKEN_CHANNEL, min=0, max=int(time.time()))
+                print(data)
+                logger.info(f"redis result: {data}")
                 if data:
                     for address in data:
                         logger.info(f"New token address: {address}")
@@ -79,7 +84,8 @@ class AddressMonitor():
                 logger.error(f"Worker error: {e}")
                 logger.exception(e)
                 continue
-
+    
+        
     async def analysis_token(self, token_address):
         gmgn_monitor = GMGN()
         kline = gmgn_monitor.fetch_kline_data(
@@ -144,12 +150,16 @@ class AddressMonitor():
 async def main():
     pre_start()
     monitor = AddressMonitor()
-    await monitor.AddToMonitor([
-        'G7ZXGygKPS2vts5eZ6ws8sXPVdqr1VBKhiVBz6qmShbN',
-        'Db43M7vneandhvPW2kwn92dZEBA1pdubQ6FMGJAFWZUF',
-        'Hn5HkzBp2TXJ1CpL22kXjmveKT3DcoUZ6nPnQZcJX9DU',
-        'HsJN2ESiwGaAcwhgS8vqJLYb7DnnYdb1RTS1j5hTePcz',
-    ])
+    await monitor.init()
+    data = await monitor.redis.zrangebyscore(NEW_TOKEN_CHANNEL, min=0, max=int(time.time()))
+    for i in data:
+        print(i)
+    # await monitor.AddToMonitor([
+    #     'G7ZXGygKPS2vts5eZ6ws8sXPVdqr1VBKhiVBz6qmShbN',
+    #     'Db43M7vneandhvPW2kwn92dZEBA1pdubQ6FMGJAFWZUF',
+    #     'Hn5HkzBp2TXJ1CpL22kXjmveKT3DcoUZ6nPnQZcJX9DU',
+    #     'HsJN2ESiwGaAcwhgS8vqJLYb7DnnYdb1RTS1j5hTePcz',
+    # ])
 
 
 if __name__ == "__main__":
