@@ -54,7 +54,7 @@ class GMGN():
         self.driver = CloudflareBypasser(addr_or_opts=options)
         
     
-    def fetch_trader_data(self, token_id, start_datetime, nums):
+    def fetch_trader_data(self, token_id, start_datetime, nums, retry=0):
         """
         根据传入的 token_id、起始时间（datetime 对象）和记录条数，
         调用接口获取交易数据，并整理出所有的交易者信息为 pandas 的 DataFrame。
@@ -68,41 +68,49 @@ class GMGN():
         - 一个 pandas.DataFrame，包含接口返回的交易历史数据
         """
         # 将 datetime 对象转换为 Unix 时间戳（整数）
-        start_timestamp = int(start_datetime.timestamp())
-        
-        # 构造基础 URL，将 token_id 填入 URL 中
-        base_url = "https://gmgn.ai/api/v1/token_trades/sol/{}"
-        base_url = base_url.format(token_id)
-        trading_info = []
-        for i in range(nums//100):
-            logger.info(f"Fetching {i}th page of trading data for token {token_id}")
-            # 构造请求参数
-            params = {
-                "tz_name": "Asia/Hong_Kong",
-                "tz_offset": "28800",
-                "app_lang": "en",
-                "limit": 100,
-                "maker": "",
-                "from": start_timestamp,
-                "revert": "true"
-            }
+        if retry > 3:
+            return pd.DataFrame()
+        try:
+            start_timestamp = int(start_datetime.timestamp())
             
-            # 发送 GET 请求
-            
-            url = f"{base_url}?{urlencode(params)}"
-            html = self.driver.request(url)
-            html = BeautifulSoup(html, "html.parser")
-            history = json.loads(html.text)["data"]["history"]
-            if len(history) == 0:
-                break
-            # 将交易记录整理为 pandas DataFrame
-            df = pd.DataFrame(history)
-            start_timestamp = df['timestamp'].max()
-            trading_info.append(df)
-        df = pd.concat(trading_info)
+            # 构造基础 URL，将 token_id 填入 URL 中
+            base_url = "https://gmgn.ai/api/v1/token_trades/sol/{}"
+            base_url = base_url.format(token_id)
+            trading_info = []
+            for i in range(nums//100):
+                logger.info(f"Fetching {i}th page of trading data for token {token_id}")
+                # 构造请求参数
+                params = {
+                    "tz_name": "Asia/Hong_Kong",
+                    "tz_offset": "28800",
+                    "app_lang": "en",
+                    "limit": 100,
+                    "maker": "",
+                    "from": start_timestamp,
+                    "revert": "true"
+                }
+                
+                # 发送 GET 请求
+                
+                url = f"{base_url}?{urlencode(params)}"
+                html = self.driver.request(url)
+                html = BeautifulSoup(html, "html.parser")
+                history = json.loads(html.text)["data"]["history"]
+                if len(history) == 0:
+                    break
+                # 将交易记录整理为 pandas DataFrame
+                df = pd.DataFrame(history)
+                start_timestamp = df['timestamp'].max()
+                trading_info.append(df)
+            df = pd.concat(trading_info)
+        except Exception as e:
+            logger.error(f"Error fetching trading data: {e}")
+            time.sleep(5)
+            df = self.fetch_trader_data(token_id, start_datetime, nums, retry
+                                        + 1)
         return df
     
-    def fetch_kline_data(self, token_id, start_datetime, end_datetime, resolution="1m"):
+    def fetch_kline_data(self, token_id, start_datetime, end_datetime, resolution="1m", retry=0):
         """
         根据传入的 token_id、开始时间和结束时间（均为 datetime 对象），
         获取历史 K 线数据，并整理为 pandas DataFrame。
@@ -117,56 +125,62 @@ class GMGN():
         - 一个 pandas.DataFrame，包含 K 线数据（字段 open、close、high、low、time、volume）
         """
         # 将 datetime 对象转换为 Unix 时间戳（单位：秒）
-        logger.info(f"Fetching Kline data for token {token_id}")
-        start_ts = int(start_datetime.timestamp())
-        end_ts = int(end_datetime.timestamp())
-        
-        # 构造基础 URL，将 token_id 填入 URL 中
-        base_url = f"https://gmgn.ai/api/v1/token_kline/sol/{token_id}"
-        
-        # 构造请求参数
-        params = {
-            "tz_name": "Asia/Hong_Kong",
-            "tz_offset": "28800",
-            "app_lang": "en",
-            "resolution": resolution,
-            "from": start_ts,
-            "to": end_ts
-        }
-        
-        url = f"{base_url}?{urlencode(params)}"
-        
-        # 发起 GET 请求
-        html = self.driver.request(url)
-        html = BeautifulSoup(html, "html.parser")
-        history = json.loads(html.text).get("data", {}).get("list", [])
-        # 解析返回的 JSON 数据，并提取 K 线数据列表
-        
-        # 将数据整理为 pandas DataFrame
-        df = pd.DataFrame(history)
-        if resolution == "1m":
-            time_delta = timedelta(minutes=1)
-        elif resolution == "5m":
-            time_delta = timedelta(minutes=5)
-        elif resolution == "15m":
-            time_delta = timedelta(minutes=15)
-        elif resolution == "30m":
-            time_delta = timedelta(minutes=30)
-        elif resolution == "1h":
-            time_delta = timedelta(hours=1)
-        elif resolution == "4h":
-            time_delta = timedelta(hours=4)
-        elif resolution == "1d":
-            time_delta = timedelta(days=1)
-        else:
-            time_delta = timedelta(minutes=1)
+        if retry > 3:
+            return pd.DataFrame()
+        try:
+            logger.info(f"Fetching Kline data for token {token_id}")
+            start_ts = int(start_datetime.timestamp())
+            end_ts = int(end_datetime.timestamp())
             
-        # 将 time 字段（以毫秒为单位的时间戳）转换为 datetime 对象
-        if not df.empty and "time" in df.columns:
-            df["time"] = pd.to_datetime(df["time"].astype(int), unit="ms")
-        else:
-            df["time"] = [start_datetime + i * time_delta for i in range(len(df))]
-        
+            # 构造基础 URL，将 token_id 填入 URL 中
+            base_url = f"https://gmgn.ai/api/v1/token_kline/sol/{token_id}"
+            
+            # 构造请求参数
+            params = {
+                "tz_name": "Asia/Hong_Kong",
+                "tz_offset": "28800",
+                "app_lang": "en",
+                "resolution": resolution,
+                "from": start_ts,
+                "to": end_ts
+            }
+            
+            url = f"{base_url}?{urlencode(params)}"
+            
+            # 发起 GET 请求
+            html = self.driver.request(url)
+            html = BeautifulSoup(html, "html.parser")
+            history = json.loads(html.text).get("data", {}).get("list", [])
+            # 解析返回的 JSON 数据，并提取 K 线数据列表
+            
+            # 将数据整理为 pandas DataFrame
+            df = pd.DataFrame(history)
+            if resolution == "1m":
+                time_delta = timedelta(minutes=1)
+            elif resolution == "5m":
+                time_delta = timedelta(minutes=5)
+            elif resolution == "15m":
+                time_delta = timedelta(minutes=15)
+            elif resolution == "30m":
+                time_delta = timedelta(minutes=30)
+            elif resolution == "1h":
+                time_delta = timedelta(hours=1)
+            elif resolution == "4h":
+                time_delta = timedelta(hours=4)
+            elif resolution == "1d":
+                time_delta = timedelta(days=1)
+            else:
+                time_delta = timedelta(minutes=1)
+                
+            # 将 time 字段（以毫秒为单位的时间戳）转换为 datetime 对象
+            if not df.empty and "time" in df.columns:
+                df["time"] = pd.to_datetime(df["time"].astype(int), unit="ms")
+            else:
+                df["time"] = [start_datetime + i * time_delta for i in range(len(df))]
+        except Exception as e:
+            logger.error(f"Error fetching Kline data: {e}")
+            time.sleep(5)
+            df = self.fetch_kline_data(token_id, start_datetime, end_datetime, resolution, retry + 1)
         return df
 
     def fetch_hot_token(self, interval="5m", min_created="1000m", max_created="1111111m"):
@@ -206,33 +220,39 @@ class GMGN():
         df = pd.DataFrame(tokens)
         return df
     
-    def fetch_hoding(self, address):
-        logger.info(f"Fetching hoding data for address {address}")
-        base_url = f'https://gmgn.ai/api/v1/wallet_holdings/sol/{address}'
-        data = {
-            "tz_name": "Asia/Shanghai",
-            "tz_offset": "28800",
-            "app_lang": "en",
-            "limit": 50,
-            "orderby": "last_active_timestamp",
-            "direction": "desc",
-            "showsmall": "true",
-            "sellout": "true",
-            "hide_abnormal": "false"
-        }
-        url = f"{base_url}?{urlencode(data)}"
-        # print(url)
-        html = self.driver.request(url)
-        html = BeautifulSoup(html, "html.parser")
-        hoding = json.loads(html.text).get("data", {}).get('holdings',[])
-        if hoding:
-            for i in hoding:
-                for k in i['token'].keys():
-                    i[f'token_{k}'] = i['token'][k]
-                i.pop('token')
-        # 将代币列表整理为 pandas DataFrame
-        df = pd.DataFrame(hoding)
-        
+    def fetch_hoding(self, address, retry=0):
+        if retry > 3:
+            return pd.DataFrame()
+        try:
+            logger.info(f"Fetching hoding data for address {address}")
+            base_url = f'https://gmgn.ai/api/v1/wallet_holdings/sol/{address}'
+            data = {
+                "tz_name": "Asia/Shanghai",
+                "tz_offset": "28800",
+                "app_lang": "en",
+                "limit": 50,
+                "orderby": "last_active_timestamp",
+                "direction": "desc",
+                "showsmall": "true",
+                "sellout": "true",
+                "hide_abnormal": "false"
+            }
+            url = f"{base_url}?{urlencode(data)}"
+            # print(url)
+            html = self.driver.request(url)
+            html = BeautifulSoup(html, "html.parser")
+            hoding = json.loads(html.text).get("data", {}).get('holdings',[])
+            if hoding:
+                for i in hoding:
+                    for k in i['token'].keys():
+                        i[f'token_{k}'] = i['token'][k]
+                    i.pop('token')
+            # 将代币列表整理为 pandas DataFrame
+            df = pd.DataFrame(hoding)
+        except Exception as e:
+            logger.error(f"Error fetching hoding data: {e}")
+            time.sleep(5)
+            df = self.fetch_hoding(address, retry + 1)
         return df
         
         

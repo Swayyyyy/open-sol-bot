@@ -72,14 +72,15 @@ class AddressMonitor():
         while True:
             # logger.info("start monitor token...")
             try:
-                data = await self.redis.zrangebyscore(NEW_TOKEN_CHANNEL, min=0, max=int(time.time()))
+                data = await self.redis.zrangebyscore(NEW_TOKEN_CHANNEL, min=0, max=time.time())
                 # print(data)
                 # logger.info(f"redis result: {data}")
                 if data:
                     for address in data:
                         logger.info(f"New token address: {address}")
                         await self.analysis_token(address)
-                        self.redis.zrem(NEW_TOKEN_CHANNEL, address)
+                        logger.info(f"Remove token address: {address}")
+                        await self.redis.zrem(NEW_TOKEN_CHANNEL, address)
             except Exception as e:
                 logger.error(f"Worker error: {e}")
                 logger.exception(e)
@@ -94,6 +95,8 @@ class AddressMonitor():
             datetime.datetime.now(), "1m")
         kline['volume'] = kline['volume'].astype(float)
         start_time = kline.loc[kline['volume'] > 0]['time'].min()
+        if not start_time:
+            return
         trade_info = gmgn_monitor.fetch_trader_data(token_address, start_time,
                                                     1000)
         buyer = trade_info.loc[trade_info['event'] ==
@@ -151,7 +154,7 @@ async def main():
     pre_start()
     monitor = AddressMonitor()
     await monitor.init()
-    data = await monitor.redis.zrangebyscore(NEW_TOKEN_CHANNEL, min=0, max=int(time.time()))
+    data = await monitor.redis.zrangebyscore(NEW_TOKEN_CHANNEL, min=0, max=time.time())
     for i in data:
         print(i)
     # await monitor.AddToMonitor([

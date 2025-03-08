@@ -43,7 +43,7 @@ class GmgnMontior:
                 logger.error(f"Error processing item: {e}")
     
     async def add_to_delay_queue(self, queue_name, task_id, delay_seconds):
-        score = int(time.time()) + delay_seconds
+        score = time.time() + delay_seconds
         await self.redis.zadd(queue_name, score, task_id)
         
 
