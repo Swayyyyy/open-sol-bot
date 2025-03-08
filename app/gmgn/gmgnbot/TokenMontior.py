@@ -37,12 +37,12 @@ class GmgnMontior:
                     result = await self.redis.sadd(NEW_TOKEN_QUEUE_KEY, i)
                     if result:
                         logger.info(f'add new token: {i}')
-                        self.add_to_delay_queue(NEW_TOKEN_CHANNEL, i, 600)
+                        await self.add_to_delay_queue(NEW_TOKEN_CHANNEL, i, 600)
                         # await self.redis.lpush(NEW_TOKEN_CHANNEL, i)
                 time.sleep(60)
             except Exception as e:
                 logger.error(f"Error processing item: {e}")
     
-    def add_to_delay_queue(self, queue_name, task_id, delay_seconds):
+    async def add_to_delay_queue(self, queue_name, task_id, delay_seconds):
         score = time.time() + delay_seconds
-        self.redis.zadd(queue_name, {task_id: score})
+        await self.redis.zadd(queue_name, {task_id: score})
