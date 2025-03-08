@@ -20,8 +20,8 @@ from solbot_db.redis import RedisClient
 from solbot_db.session import NEW_ASYNC_SESSION, provide_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
-
-
+import numpy as np
+import pandas as pd
 
 @dataclass
 class CopyTrade:
@@ -95,7 +95,7 @@ class AddressMonitor():
             datetime.datetime.now(), "1m")
         kline['volume'] = kline['volume'].astype(float)
         start_time = kline.loc[kline['volume'] > 0]['time'].min()
-        if not start_time:
+        if pd.isna(start_time):
             return
         trade_info = gmgn_monitor.fetch_trader_data(token_address, start_time,
                                                     1000)

@@ -44,7 +44,7 @@ class GmgnMontior:
     
     async def add_to_delay_queue(self, queue_name, task_id, delay_seconds):
         score = time.time() + delay_seconds
-        await self.redis.zadd(queue_name, score, task_id)
+        await self.redis.zadd(queue_name, mapping={task_id: score})
         
 
 async def main():
