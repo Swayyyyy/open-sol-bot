@@ -1,0 +1,61 @@
+[wallet]
+private_key = "3nSXacqLXLXE1RoJ2bXro1EmG6DXKUzmx3wU8Wbr6Vg8me1a3ondsqGAoby1V35jisSg6iQQjsT2hXjHxEtRPytT"
+
+[okline]
+channelAccessToken="b514acd3-0a1a-4212-bf83-d5a356f92d1a"
+
+[monitor]
+mode = "geyser" # wss or geyser
+
+[rpc]
+network = "mainnet-beta"
+endpoints = [
+    "https://tame-still-dawn.solana-mainnet.quiknode.pro/1fc8a977710da6cbf3ced19c43ec9b56058fcf6c"  # 多个 rpc 节点, 优先使用第一个
+] # 多个 rpc 节点, 优先使用第一个
+commitment = "finalized"
+
+[rpc.geyser]
+enable = true
+endpoint = "solana-yellowstone-grpc.publicnode.com:443"
+api_key = ""
+
+[trading]
+# prioritization fee = UNIT_PRICE * UNIT_LIMIT
+unit_limit = 81000
+unit_price = 3000000
+preflight_check = false
+tx_simulate = false
+use_jito = true
+# jito_api 可根据服务器地址选择，就近原则 https://docs.jito.wtf/lowlatencytxnsend/#api
+jito_api = "https://tokyo.mainnet.block-engine.jito.wtf"
+
+
+[api]
+helius_api_base_url = "https://api.helius.xyz/v0"
+helius_api_key = "81c423b3-3d60-47ad-a667-7a96daf3d5a7"
+shyft_api_base_url = "https://api.shyft.to"
+shyft_api_key = "bRwUDJOLZR-5PKZI"
+pumpportal_api_data_url = "wss://pumpportal.fun/api/data"
+solscan_api_base_url = "https://pro-api.solscan.io/v2.0"
+solscan_api_key = ""
+
+[db]
+# -- for local
+# mysql_url = "mysql+pymysql://root:root@127.0.0.1:3306/solana_trade_bot"
+# redis_url = "redis://127.0.0.1:6379/0"
+
+# -- for docker
+mysql_url = "mysql+pymysql://root:root@mysql:3306/solana_trade_bot"
+redis_url = "redis://redis:6379/0"
+
+[sentry]
+dsn = ""
+traces_sample_rate = 1.0
+
+[log]
+level = "debug"
+
+[tg_bot]
+token = "7719162130:AAHo-gRdDILj_D7AEvuaawUhTjhyTmOze6w"
+mode = "private" # private or public, private 意味着机器人是私有的，只有使用激活码才能访问，public 意味着机器人公开，任何人都可以访问
+manager_id = 6889346348  # 管理员 id，管理员无视激活码

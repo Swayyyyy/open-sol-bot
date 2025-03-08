@@ -20,8 +20,6 @@ from solbot_db.session import NEW_ASYNC_SESSION, provide_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-monitor_service = MonitorService()
-copy_trade_service = CopyTradeService()
 
 
 @dataclass
@@ -60,16 +58,32 @@ class AddressMonitor():
         self.OKLine = OKLine(settings.okline.channelAccessToken)
         self.tokens_history = {}
         self.redis = None
+        self.monitor_service = MonitorService()
+        self.copy_trade_service = CopyTradeService()
 
+        
     async def start(self):
         """启动监控服务"""
         logger.info("Starting address monitor service...")
         self.redis = await RedisClient.get_instance()
+        self.pop_script = self.redis.register_script("""
+        local res = redis.call('ZRANGE', KEYS[1], 0, 0, 'WITHSCORES')
+        if res[1] and tonumber(res[2]) <= tonumber(ARGV[1]) then
+            redis.call('ZREM', KEYS[1], res[1])
+            return res[1]
+        end
+        return nil
+        """)
         while True:
             try:
-                data = await self.redis.brpop(NEW_TOKEN_CHANNEL, timeout=1)
-                if data:
-                    _, address = data
+                current_time = time.time()
+                result = await self.redis.eval(self.pop_script, 1, NEW_TOKEN_CHANNEL, current_time)
+                if result:
+                    # 如果 redis 连接使用的是 decode_responses=False 则返回的是 bytes 类型
+                    address = result.decode()
+                # data = await self.redis.brpop(NEW_TOKEN_CHANNEL, timeout=1)
+                # if data:
+                #     _, address = data
                     logger.info(f"New token address: {address}")
                     await self.analysis_token(address)
             except Exception as e:
@@ -109,13 +123,15 @@ class AddressMonitor():
             return
         await self.AddToMonitor(select_wallets)
 
-    async def AddToMonitor(self, target_wallets) -> None:
+    async def AddToMonitor(self, target_wallets,retry=0) -> None:
+        if retry > 3:
+            raise ValueError("Failed to create monitor after 3 retries")
         """Add a new monitor to the database"""
         if target_wallets is None:
             raise ValueError("target_wallet is required")
         logger.info(f"Adding monitor for wallet: {target_wallets}")
         try:
-            pbkey = await copy_trade_service.getpk(settings.tg_bot.manager_id)
+            pbkey = await self.copy_trade_service.getpk(settings.tg_bot.manager_id)
             if not pbkey:
                 raise ValueError("Wallet not found")
             # stmt = select(User.pubkey).where(User.chat_id == settings.tg_bot.manager_id).limit(1)
@@ -129,10 +145,12 @@ class AddressMonitor():
                     active=True,
                 ) for target_wallet in target_wallets
             ]
-            await copy_trade_service.addall(monitors)
+            await self.copy_trade_service.addall(monitors)
 
         except Exception as e:
-            raise ValueError(f"Failed to create monitor: {e}")
+            await self.AddToMonitor(target_wallets, retry + 1)
+            logger.error(f"Failed to create monitor: {e}")
+            
 
 
 async def main():
